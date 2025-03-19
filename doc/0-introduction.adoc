@@ -1,0 +1,155 @@
+
+= 0. Introduction
+
+== And so we met. Let's get to know each-other... (Yes, this chapter starts from 0)
+
+Hey, there! You have probably read the title and the description of this workshop,
+but to make sure we are on the same page, I'll try to answer some questions in this chapter.
+
+.What is this workshop for?
+****
+Obviously, building an AI assistant...
+
+Okay, this s not a good explanation. Let's break it down a bit.
+
+The idea of this workshop is to show you how you can utilize the power of the Large Language Model (a.k.a. LLM) into your web application and make it even more and flexible.
+There's plethora of use cases where you can combine LLM with the business logic of server application, with only your imagination as limitation.
+****
+
+.How does this suit me?
+****
+This suits you in many ways.
+Have you ever thought of a scenario where your application has a lot of input data that needs a human-like approach to analyze?
+Let's look at some examples:
+
+*Example 1:*
+ +
+You're building an app that tracks people's fitness, and eating habits.
+The app tracks stuff like the person's bodily metrics (weight, height, age, gender, etc.), and it also tracks their eating habits,
+like foods and meals they eat, caloric intake, nutritional levels and so on.
+Usually you would need someone to enter the data of each food, find out what nutrients it contains and add logic to combine these parameters in a scientifically proven method, that will infrom the user about their health choices.
+
+The problem?
+ +
+You can't manage all the foods in the world and find out all the information that your app needs to give the proper information to that user.
+Also, one size does not fit all.
+What if you needed to output information that is more targeted to the user?
+
+The solution?
+ +
+You integrate LLM to your application.
+You add a specific prompt, customized to the user's needs and ask it to return the appropriate data.
+The LLM can be trained to know all the foods in the world, their nutritional values and how their combination may impact
+the overall body health of the user.
+The data can also be saved to the database in order to be reused for other users, that might have the same requirements.
+
+'''
+
+*Example 2:*
+ +
+You build a librarian software.
+Your application takes track of all the books contained within a library.
+It also knows where each book can be found.
+Your application searches for the right book, tracks book rentals and helps users navigate to the right section.
+
+The problem?
+ +
+What if you wanted your application to do a tad bit more? For example give appropriate recommendations to the user,
+based on description of what they are looking for, or let the app recommend books of your library to that user, based on their rating of previous books?
+
+The solution?
+ +
+Use LLM.
+You can make specific LLM prompts that include the user's description of the book, their preferences and ratings of previous readings.
+The LLM could be trained on book knowledge, and you can even implement a logic where the LLM literally chats with your application,
+asking it if this book is in the library, or not, so it can build up a list of the books that are only present within your library.
+
+'''
+
+*Example 3:*
+
+You are building a home assistant server, that is capable of managing your smart devices.
+The server's API accepts specific intents, that trigger hardcoded scenarios and switch on/of lights collect data from sensors etc.
+
+The problem:
+ +
+You want your server to be smarter.
+You want your intents to be more flexible.
+Like for example when you say "Lights on!" to your voice assistant, you want it to turn on certain lights.
+
+The solution:
+ +
+You can integrate an LLM into the server.
+It will take your voice input from a third party assistant like Google Home or Alexa and prompt your LLM to identify the intent,
+and query the right devices.
+The LLM will return a proper response, that is going to be read by the home assistant, and will trigger the smart devices that it decides
+it needs to trigger according to the prompt.
+****
+
+[NOTE]
+To keep this section brief, I am giving you some vague examples.
+All of these will have their specific constrains and challenges, but none of them is impossible.
+You can think of any task that needs a more abstract thinking and task an LLM to do it for you.
+
+.Okay! I'm convinced! Where do we go from here?
+****
+To start off, you're in the right place!
+In this workshop we are going to build such a solution by delving deeper into one of the aforementioned examples.
+We will build a web application server that will gather input from the user and ask an LLM for the things that we can't
+or don't want to figure out on our own.
+For that purpose I am going to show you how you can implement the first example.
+
+We will build an application that will gather information about the eating habits of a user and will use an LLM to figure out nutritional
+facts about the food they consume.
+As a result we will give each user some proper information about their eating habits and generate a review, based on the stuff they
+consumed.
+This will help the user make better and healthier food choices that are more in tune with their personal bodily parameters.
+****
+
+.What's the technology stack we're going to use?
+****
+The technology stack is pretty simple and requires the least amount of set up on your side.
+Here is what we're going to use:
+
+* *Spring Boot framework* - this is the heart of our application.
+We will build our API endpoint here that will collect information about the user, the foods they prefer and the stuff they eat per meal.
+* *Postgres database* - the database will store the data inputted by the user, but it will also store the broken down data, from the LLM.
+This will help us later on to avoid querying the LLM for the things our application already knows and save us some time and processing power.
+* *Ollama server* - Ollama is the coolest kind on the block.
+It's a web server, you can host locally and use its APIs to communicate with an LLM model stored locally.
+Having everything local means, that the LLM will use the power of your machine to take the input and compute the output answers.
+* *llama LLM* - the LLM is the main star in our project.
+You can use any LLM model here, but the reason to choose Llama is, because it has small distilled models, capable to run on most modern machines
+without too high power requirements.
+* *Docker* - to wrap our database and Ollama server in an easy to deploy framework, I will provide you will a docker-compose
+script that is going to save you the time of having to configure everything and leave only the development part up to you.
+****
+
+NOTE: llama is not the best LLM and will not give us the best and most accurate answers.
+The purpose here is to prove that our goal is achievable.
+Typically, you will need to take your model of choice and teach it the data it needs to work on, so it can give more accurate results,
+but this part requires an immense computing power and time, that can only be achieved by rending powerful cloud training services such as VMware Private AI Foundation with NVIDIA.
+
+.But isn't running an LLM locally slow? (The system requirements)
+****
+Yes, it is. But for the small tasks and model we are going to use, it shouldn't take as much time to compute your results.
+The goal here is to prove that this can be easily set and done.
+If you want, you can always experiment with OpenAPI's models or host a dedicated LLM server online, but this is out of the scope of this workshop.
+
+Having said that, most modern machines should be able to operate these tasks, just keep in mind the following requirements:
+
+* *A computer running MacOS, Linux or Windows* (*with WSL installed!*)
+* *At least 16GB of RAM* - LLM models tend to be memory intensive, so we will need that as a minimum
+* *A modern CPU* - any CPU would work, the more cores you have, the better.
+In my experience processors, such as Mac's M chips tend to generate LLM results faster, so that would be a benefit.
+* At least 50GB of free memory - The LLM model will require around 4-8GB, and we will need around a couple of more gigs to
+support the docker images and maven dependencies. And besides, let's not be stingy.
+It's bad for your hard drive to be low on memory anyway.
+* *Dedicated GPU* - this is *optional* and will require some tinkering with your system's configuration.
+To allow Ollama to utilize that GPU.
+It will generate your results significantly faster though.
+Assure this step if you know what you're doing.
+We won't delve into that.
+****
+
+Now that we're all clear, let's get to the second chapter where I will take you through our project design and show you the big picture.

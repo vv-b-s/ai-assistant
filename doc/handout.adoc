@@ -1,0 +1,10 @@
+= Buid your AI assistant with Ollama, LLM and Spring
+:doctype: book
+:imagesdir: img
+:source-highlighter: coderay
+:icons: font
+:toc: left
+:sectnums:
+:pdf-page-size: A4
+
+include::0-introduction.adoc
