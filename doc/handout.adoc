@@ -7,4 +7,5 @@
 :sectnums:
 :pdf-page-size: A4
 
-include::0-introduction.adoc
+include::0-introduction.adoc[]
+include::1-project-structure.adoc[]

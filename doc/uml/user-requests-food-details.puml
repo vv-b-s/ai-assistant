@@ -1,0 +1,20 @@
+@startuml
+!theme sketchy-outline
+skinparam maxMessageSize 200
+skinparam backgroundColor #White
+
+actor User as U
+participant Spring as S #88E788
+database DB #B5C7EB
+participant Ollama as O #D9D9D9
+
+U --> S : 1. Calls API endpoint\nwith a list of foods
+S <-o DB : 2. Pulls out food entities that\nare found by their name
+S -> U : 3. ""200 OK: Returns list of foods""
+== Asynchronous tasks ==
+S --> O : 4. Creates a prompt to ask for the missing food details
+O -> S : 5. Returns a response.
+S -> S : 6. Parses the response and validates its content
+S -> DB : 7. Persists/updates the food entity with the missing details.
+
+@enduml

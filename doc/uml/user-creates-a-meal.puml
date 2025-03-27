@@ -1,0 +1,27 @@
+@startuml
+!theme sketchy-outline
+skinparam maxMessageSize 200
+skinparam backgroundColor #White
+
+actor User as U
+participant Spring as S #88E788
+database DB #B5C7EB
+participant Ollama as O #D9D9D9
+entity LLM #FFFFC5
+
+U --> S : 1. Creates an account
+S -> DB : 2. Persists user data
+S -> U : 3. ""201 CREATED""
+U --> S : 4. Enters a meal
+S -> DB : 5. Persists meal
+S -> U : 6. ""201 CREATED""
+== Asynchronous tasks ==
+S <-o DB : 7. Pulls food items
+S --> O : 8. Prompts LLM for food information
+O -> LLM : 9. Calls LLM
+LLM -> LLM : 10. Performs computation
+LLM -> O : 11. Returns response
+O -> S : 12. Returns response
+S -> S : 13. Parses response
+S -> DB : 14. Persists parsed data
+@enduml

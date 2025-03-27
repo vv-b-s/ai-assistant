@@ -1,0 +1,38 @@
+@startuml
+!theme sketchy-outline
+skinparam maxMessageSize 200
+skinparam backgroundColor #White
+
+cloud "SpringBoot API" as SB #88E788;line:black {
+}
+
+node "Docker" #text:black {
+    cloud "Ollama API" as O #D9D9D9;line:black {
+    }
+
+    database "PostgresSQL" as DB #B5C7EB {
+        folder "User details" as U {
+        }
+        folder "Foods" as F {
+        }
+        folder "Meals" as M {
+        }
+    }
+
+    node "LLM" #FFFFC5;text:black;line:black {
+    }
+}
+
+SB <..> O
+O -> "LLM"
+SB -down-> DB
+M <-> F
+M <-u-> U
+
+
+
+
+
+
+
+@enduml

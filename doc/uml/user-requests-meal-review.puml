@@ -1,0 +1,26 @@
+@startuml
+!theme sketchy-outline
+skinparam maxMessageSize 200
+skinparam backgroundColor #White
+
+actor User as U
+participant Spring as S #88E788
+database DB #B5C7EB
+participant Ollama as O #D9D9D9
+
+== Act I ==
+U --> S : 1. Creates a meal
+S -> DB : 2. Meal gets persisted
+S -> U : 3. ""201 CREATED""
+== Asynchronous tasks ==
+S <-o DB : 4. Pulls meal information
+S --> O : 5. Prompts LLM for meal review
+O -> O : 6. Communicates with LLM to generate meal review.
+O -> S : 7. Returns meal review data
+S -> DB : 8. Persists meal review to the meal entity
+== Act II ==
+U --> S : 9. Requests meal information
+S <-o DB : 10: Checks if meal id exists and pulls it from the database
+S -> U : 11: ""200 OK: Returns meal information, along with review.""
+
+@enduml
