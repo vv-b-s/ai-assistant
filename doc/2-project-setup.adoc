@@ -1,0 +1,133 @@
+
+:imagesdir: img
+:source-highlighter: coderay
+:icons: font
+
+== Project Setup
+
+Setting up the project should be pretty straight forward.
+If you feel any struggle, you can always look at the link:../code[code] directory, but keep in mind that learning through error
+is the best approach to get the most out of this workshop, so don't give into the frustration!
+
+=== The Docker set-up
+
+The first step of making our project is ensuring that all the supporting structure is up and running.
+For that you will need to have docker installed on your machine.
+We will create three files, that will orchestrate the rest.
+
+==== docker-compose.yml
+
+Inside your project directory, create a file, named `docker-compose.yml`.
+The contents of this file should be as follows:
+
+[source, yaml]
+----
+version: '3'
+volumes:
+  database:
+  cache:
+
+services:
+
+  postgres:
+    image: postgres:14.2
+    restart: always
+    volumes: <.>
+      - ./docker/database/data:/var/lib/postgresql/data
+      - ./docker/database/postgres:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: adviser
+      POSTGRES_USER: adviser
+      DATABASES: adviser
+
+  ollama:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.ollama <.>
+    image: ollama
+    container_name: ollama
+    entrypoint: /tmp/run-ollama.sh <.>
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    ports:
+      - 11434:11434
+    volumes: <.>
+      - ./docker/ollama/app:/app/
+      - ./docker/ollama/ollama:/root/.ollama
+    tty: true
+    restart: always
+#Uncomment to enable GPU capabilities (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+#    deploy:
+#      resources:
+#        reservations:
+#          devices:
+#            - driver: nvidia
+#              count: 1
+#              capabilities: [ gpu ]
+
+----
+<.> We choose to place the database content in a visible volume folder within the project.
+This will help you manage and move your project files easily between environments, without having to wonder where they went.
+
+<.> For Ollama we will use a special `Dockerfile`, in order to tell the container to download the LLM automatically.
+This is rather a workaround, as the official Ollama containers do not support this out of the box.
+
+<.> Additionally, we will need a special script, which is going to be run within the Ollama container to initiate Ollama
+and tell it to pull the required image if missing.
+
+<.> The files pulled by Ollama will also be stored in their own folder, within the project directory.
+
+TIP: If you feel more adventurous, you can try running Ollama on your graphics card.
+This will improve the LLM response time significantly, although setting up this feature, requires you to install https://developer.nvidia.com/cuda-toolkit[Nvidia CUDA
+drivers], and https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html[Nvidia pass-through for Docker] containers.
+These steps are not covered by this workshop, so please refer to the respective tutorials, if you want to delve in to that any further.
+
+==== The Dockerfile
+
+Once we have `docker-compose.yml`, we can proceed creating the docker file within the same folder.
+Create a file, named `Dockerfile.ollama`, with the following contents:
+
+[source, dockerfile]
+----
+FROM ollama/ollama
+
+COPY ./run-ollama.sh /tmp/run-ollama.sh <.>
+
+WORKDIR /tmp
+
+RUN chmod +x run-ollama.sh
+
+EXPOSE 11434 <.>
+
+----
+<.> The left hand of the `COPY` command is the place where the `run-ollama.sh` file is located, the right hand is
+where the file will be copied inside the container.
+
+<.> With the `EXPOSE` command we tell Docker to open port `11434`, which is the default port to access the Ollama API.
+(Make sure it's not used! 😜)
+
+==== `run-ollama.sh`
+
+One final file for this part - the `run-ollama.sh` file.
+Again create it in the same folder, and add the following contents:
+
+[source, bash]
+----
+#!/bin/bash
+
+echo "Starting Ollama server..."
+ollama serve &
+ollama run llama3 <.>
+
+
+echo "Waiting for Ollama server to be active..."
+while [ "$(ollama list | grep 'NAME')" == "" ]; do
+  sleep 1
+done
+----
+<.> This is the place, where we tell Ollama, which model to install.
+
+NOTE: You can go with the one given here, or choose your own favorite flavour of LLM, just keep in mind that each LLM responds differently,
+and you might get different results or processing times if you go with a different LLM.
