@@ -1,154 +1,150 @@
-
 :imagesdir: img
 :source-highlighter: coderay
 :icons: font
 
 == Project Structure
 
-Before we begin doing anything, we first need to get a better understanding of what we're building.
-This section is dedicated just for that.
-We will start with a diagram of what our project will look like.
+Before we begin, let's take a step back and visualize what we're building.
+Think of this as assembling a high-performance team, where each component plays a crucial role.
+This section will guide you through how everything fits together.
 
-=== Component diagram
+We'll start with a high-level diagram that paints the big picture.
 
-Simply put our component diagram will look like this:
+=== Component Diagram
 
-.Component diagram
+At its core, our system consists of several key components working together like a well-oiled machine:
+
+.Component Diagram
 image::component-diagram.svg[align=center]
 
-What we see here is a complicated illustration of components called technological stack.
+* *Spring Boot API Server* - The central hub of our web application service.
+This is where user interactions happen, prompts are processed, and responses from the LLM are handled.
 
-* *SpringBoot API server* - this is the heart of webapp service.
-It will contain the endpoints that will interact with our users and will compute the prompts and process the responses from our LLM.
+* *Ollama API Server* - Acting as the bridge to the LLM, this component makes AI integration straightforward.
+With Spring Boot's powerful plugins, we can connect it with minimal configuration and call its methods efficiently.
 
-* *Ollama API server* - this is our gateway to the LLM.
-With the powerful plugins of the Spring framework, we will be able to easily access those APIs, by simply adding a config line and setting up
-some methods inside our code.
+* *LLM Model* - The brain of our intelligent web application.
+This is where the real magic happens.
+It processes user input, analyzes context, and crafts meaningful responses based on its training data.
 
-* *LLM model* - the brain of our advanced web application.
-It will take the prompt and the input of Ollama, do it's magic and spit out results in the format that the prompt has specified.
+* *PostgreSQL Database* - Our knowledge repository.
+It stores user input, processed data, and LLM responses, helping us avoid redundant queries and making the system more
+efficient over time.
 
-* *PostgresSQL* - we need to store all tha generated data by the user and the LLM somewhere, so we can easily recall it and spare calls to the LLM.
-If we receive a response once, we can save it and reuse it, instead of asking the LLM to compute it again.
-This is costing time and computational power after all.
+=== High-Level Overview
 
-* *Docker* - to make our lives easier, we will wrap the database, Ollama server and the LLM into docker containers.
-This will help us set up those components with a simple script, rather than having to read long tutorials on how to install each stuff separately.
-It will also help us pay more attention to the code, instead of trying to figure out "Why it doesn't work on my machine?"
-
-NOTE: Keep in mind that this is a very general component diagram, intended to give you general understanding on how our project will look like.
-All the underlying specifics will be examined throughout each chapter.
-
-=== Use cases
-
-Knowing all the components leads us to taking a look at the use cases of this project.
-This will help us understand what exactly are we doing and how it all comes together.
+To bring this structure to life, let's walk through a real-world example.
+Imagine a user interacting with our AI-powered nutrition assistant.
+How does their request travel through the system?
+Let's have look at some use cases that will show you the big picture, shall we?
 
 ==== Registering information
 
-When the user interacts with the app for the first time, the database will be empty, so we might need to query the LLM more often.
-Once some data has been generated, when the user repeats their requests, our database will already have some of the items we asked the LLM previously for,
-and will skip those prompts.
+Imagine using the app for the first time—fresh start, no data.
+That means we’ll need to query the LLM frequently at the beginning.
+But as time passes, the app becomes smarter.
+When a user repeats requests, the database will already contain previous LLM responses, reducing unnecessary queries and
+making the system faster over time.
 
 image::user-creates-a-meal.svg[align=center]
 
-. The user registers their account.
-It may contain things like their name age and gender, along with their height, weight and recommended daily caloric intake.
+. The user creates an account, providing essential details like name, age, gender, height, weight, and recommended daily caloric intake.
 
-. The data is consumed by the API, and it is persisted into our database.
+. The API processes this information and stores it in the database.
 
-. We send a response to the user that the data has been saved, so they can input their meal information.
+. The system confirms that the data has been saved, allowing the user to start adding meal information.
 
-. The user calls an API endpoint that registers a new meal on the database. (e.g.: [5x🍅, 1x🍕, 3x🥚])
+. The user logs a meal by calling an API endpoint (e.g., [5x🍅, 1x🍕, 3x🥚]).
 
-. The data is being processed and persisted.
+. The server processes and saves the meal data.
 
-. The server sends a response to the user that the data has been saved.
+. A confirmation is sent back to the user.
 
-. The server pulls out the persisted data for the user and checks if any food has missing details.
-This could be things as calories by quantity and amount, nutritional value, allergens etc.
+. The system checks if any foods are missing detailed nutritional information, such as calories, nutrients, and allergens.
 
-. The server builds a prompt for the LLM, telling it what task it has to perform.
-Along with that it sends a list of foods, that are new to the database.
+. If necessary, the server builds a custom prompt for the LLM, requesting details for new food items.
 
-. Ollama receives the prompt and the input and formats the query to the LLM.
+. Ollama receives the prompt and sends it to the LLM.
 
-. The LLM takes the input and does its magic.
+. The LLM works its magic, analyzing the data and generating a response.
 
-. The LLM returns a response, that is complying to the prompt, hopefully. 🫣
+. The response is passed back to Ollama.
 
-. The response is formatted to the Ollama's API and returned back to our Spring server.
+. The formatted response is returned to the Spring Boot server.
 
-. The server takes the response, that is usually a string and parses the string.
-Depending on the desired response we might want to break down the response and persist each value into a different entity.
-Sometimes the LLM might not be able to respond properly or return information that we do not want to save.
-We need to have logic to handle those scenarios.
+. The server extracts and validates the information.
+Any errors or inconsistencies are handled to prevent storing inaccurate data.
 
-. After the server breaks down the response and validates all the conditions, it persists the received data into its own entity.
+. Once validated, the enriched data is saved in the database for future use, reducing the need for repeated LLM queries.
 
-NOTE: Ideally we want to delegate LLM tasks to an asynchronous thread, as LLM computation is slow, and we don't want the user
-to wait for a response.
-That's why all the tasks that involve LLM will be executed asynchronously.
+[NOTE]
+====
+Since LLM queries take time, we delegate these tasks to an asynchronous thread.
+This ensures the user doesn't have to wait for a response while the system processes the data in the background.
+====
 
 ==== Requesting food information
 
-Sometimes the user might want to know what are the nutritional values of certain foods.
-This usecase will show how such a scenario can be handled with the help of an LLM.
+Sometimes, users may want to check the nutritional details of specific foods before consuming them.
+Our system will allow users to retrieve this data on demand, ensuring they make informed choices.
 
 image::user-requests-food-details.svg[align=center]
 
-. The user sends a query with list of food items they want to get information about. (e.g.: [🍅, 🍆, 🍊]).
+. The user queries the app for food details (e.g., [🍅, 🍆, 🍊]).
 
-. The server takes those foods and checks inside the database, whether there is data already available.
+. The server checks whether the requested food items already exist in the database.
 
-. Once the extracted data is gathered, it gets formatted and sent to the user as a response.
-If any food data is missing, the user will be informed that the data is being generated, and they need to query the food list again later.
+. If the data exists, the system formats it and returns it to the user,
+and if any information is missing, the user is notified that data is being generated and should check back later.
 
-. The server takes the missing food information and creates a prompt to the LLM.
-That prompt could be just one, containing the list of all the missing foods with a request to return info about the nutritional values, or
-it can be a single request per food.
-Deciding how to build a prompt at this step requires a balanced approach.
-If we try to get all the food information with one prompt, we might get a response that is harder to parse, but on the other hand,
-if we decide to use separate prompts, we are going to need more time to generate the info for each food item.
+. Meanwhile, the server builds a structured prompt for the LLM to request missing food details.
 
-. The data gets processed by the LLM, and Ollama returns the response, that was generated by it.
+. The LLM processes the request and returns the necessary nutritional data.
 
-. Again, since the response is in string format, we need to parse it and validate it, so we make sure we don't persist malformed data to our entities.
+. The response is validated.
 
-. The gets persisted. Next time the user queries those foods, they will get a response containing their nutritional value.
+. The data parsed, and stored in the database.
+
+Next time the user requests the same food, the data will be available instantly—no need to wait for LLM processing!
 
 ==== Asking for meal review
 
-Once the user has created a meal, they might want to know how the food they ate, impacts their health and nutrition.
-The large language model is just the thing for that! It can take the information, along with the user's body parameters and
-generate a review, along with advices how the meal can be improved to be more balanced and nutritious.
+Now that users can log meals, they might wonder:
+*How healthy was my last meal?*
+This is where the LLM steps in as a virtual nutritionist, analyzing the user’s meal and providing personalized feedback.
 
 image::user-requests-meal-review.svg[align=center]
 
-. The user enters their meal info. [6x🍌, 1x🥔, 0.5x🫚]
+. The user enters their meal details ([6x🍌, 1x🥔, 0.5x🫚]).
 
-. The data gets persisted to the Meal and Foods entities.
+. The server saves this data into the relevant database entities.
 
-. The user receives a response promptly.
+. The user gets an immediate confirmation.
 
-. The server pulls the newly created meal data from the database (or from a memory source).
+. Behind the scenes, the system retrieves the meal data and relevant user attributes (age, gender, weight, height).
 
-. A prompt is built, specific to the user's attributes (their age, gender, weight, height) along with the food they ate.
+. A detailed prompt is generated for the LLM, asking it to analyze the meal and provide a review based on the user’s profile.
 
-. The LLM is tasked to create a review, with information such as how good the meal is, and breakdown on what is good/bad and how it can be improved.
+. The LLM processes the request.
 
-. The generated review is passed back to the application server.
+. Ollama returns an insightful meal review.
 
-. The data is persisted to the meal entity.
+. The response is stored in the database alongside the meal entry.
 
-. The user requests meal information, by the meal id.
+. The user later requests a review for their meal.
 
-. The server queries the database for a meal with that id.
+. The system retrieves the analysis along with the meal data.
 
-. The newly generated response will have information about the meal details and also will contain the review.
-If the review is not yet generated, it could state that it is being generated.
+. A response is returned to the user.
+If the review is still being processed, the system informs the user to check back soon.
 
-TIP: These are couple of simple use cases, which clearly demonstrate how an LLM can be applicable in such a scenario.
-But that's not the limit.
-You can take what you learned from here and extend the project, inventing other usecase the author of this article couldn't think of.
-Remember - imagination is the limit!
+[TIP]
+====
+These are just a few examples of how an LLM can enhance an application like this.
+But the possibilities don’t stop here!
+You can take what you’ve learned and expand this project with new features and use cases.
+Get creative!
+====
+
+In the next chapter we are going to start setting up our project, so we are ready to dig in and make each of these use cases
+come to life.
