@@ -37,14 +37,14 @@ services:
       - ./docker/database/postgres:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
-    environment:
+    environment: <.>
       POSTGRES_PASSWORD: adviser
       POSTGRES_USER: adviser
       DATABASES: adviser
 
   ollama:
     build:
-      context: .
+      context: .  <.>
       dockerfile: ./Dockerfile.ollama <.>
     image: ollama
     container_name: ollama
@@ -70,6 +70,11 @@ services:
 ----
 <.> We choose to place the database content in a visible volume folder within the project.
 This will help you manage and move your project files easily between environments, without having to wonder where they went.
+
+<.> For ease of use, we pre-configure a database, called `adviser` with a user `adviser` and password `adviser`.
+
+<.> Determines the root of your docker configuration.
+Make sure that you place your docker configuration files in the path specified by this parameter.
 
 <.> For Ollama we will use a special `Dockerfile`, in order to tell the container to download the LLM automatically.
 This is rather a workaround, as the official Ollama containers do not support this out of the box.
@@ -119,7 +124,7 @@ Again create it in the same folder, and add the following contents:
 
 echo "Starting Ollama server..."
 ollama serve &
-ollama run llama3 <.>
+ollama run llama3.2:3b <.>
 
 
 echo "Waiting for Ollama server to be active..."
@@ -128,6 +133,66 @@ while [ "$(ollama list | grep 'NAME')" == "" ]; do
 done
 ----
 <.> This is the place, where we tell Ollama, which model to install.
-
-NOTE: You can go with the one given here, or choose your own favorite flavour of LLM, just keep in mind that each LLM responds differently,
+You can go with the one given here, or choose your own favorite flavour of LLM, just keep in mind that each LLM responds differently,
 and you might get different results or processing times if you go with a different LLM.
+
+Now that we have all the files created let's open a terminal into the containing folder and run `docker-compose up`.
+
+[WARNING]
+====
+Thi installation will take same time, so do be patient!
+It will first download all the required docker images, and then will attempt to pull your LLM model.
+The whole set-up will take around 4GB of your hard drive.
+====
+
+Once everything is completed you should see the following text in your terminal
+
+image::docker-ready.png[align=center]
+
+Now let's make sure all the components are working...
+
+. For the database, you can try to connect directly from your IDE's database plugin.
+You will need that to access your data manually anyway.
+If you entered everything correctly you should be able to connect to it.
++
+image::database-ready.png[align=center]
+
+. To check if Ollama is working, simply make a GET request to `localhost:11434`
++
+[source, bash]
+----
+curl -v localhost:11434
+----
++
+As a response you should get
++
+[source, text]
+----
+* Host localhost:11434 was resolved.
+* IPv6: ::1
+* IPv4: 127.0.0.1
+*   Trying [::1]:11434...
+* Connected to localhost (::1) port 11434
+> GET / HTTP/1.1
+> Host: localhost:11434
+> User-Agent: curl/8.5.0
+> Accept: */*
+>
+< HTTP/1.1 200 OK
+< Content-Type: text/plain; charset=utf-8
+< Date: Thu, 03 Apr 2025 17:47:26 GMT
+< Content-Length: 17
+<
+* Connection #0 to host localhost left intact
+Ollama is running
+----
+
+If that is all set, we can move tho the next step.
+
+=== Setting up the SpringBoot application
+
+Provisioning a SpringBoot app, should be a fairly easy task. You can just simply visit the https://start.spring.io/[Spring Initializer]
+and configure your application from there.
+As a starting point, make sure to set up your application like this:
+
+image::spring-initializer.png[align=center]

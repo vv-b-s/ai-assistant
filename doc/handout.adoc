@@ -1,4 +1,4 @@
-= Buid your AI assistant with Ollama, LLM and Spring
+
 :doctype: book
 :imagesdir: img
 :source-highlighter: coderay
@@ -6,6 +6,12 @@
 :toc: left
 :sectnums:
 :pdf-page-size: A4
+:pdf-theme: custom
+:pdf-themesdir: theme/
+:pdf-fontsdir: fonts/
+
+
+= Buid your AI assistant with Ollama, LLM and Spring
 
 include::0-introduction.adoc[]
 include::1-project-structure.adoc[]
