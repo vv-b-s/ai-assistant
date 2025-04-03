@@ -1,0 +1,13 @@
+extends: default
+font:
+  catalog:
+    NotoSerif:
+      normal: NotoSerif-Regular.ttf
+      bold: NotoSerif-Bold.ttf
+      italic: NotoSerif-Italic.ttf
+      bold_italic: NotoSerif-BoldItalic.ttf
+    NotoColorEmoji:
+      normal: NotoColorEmoji.ttf
+  fallbacks: [NotoColorEmoji]
+base:
+  font-family: NotoSerif
