@@ -20,8 +20,8 @@ services:
 
   ollama:
     build:
-      context: docker
-      dockerfile: Dockerfile.ollama
+      context: .
+      dockerfile: ./Dockerfile.ollama
     image: ollama
     container_name: ollama
     entrypoint: /tmp/run-ollama.sh
@@ -35,10 +35,10 @@ services:
     tty: true
     restart: always
 #Uncomment to enable GPU capabilities (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
+#    deploy:
+#      resources:
+#        reservations:
+#          devices:
+#            - driver: nvidia
+#              count: 1
+#              capabilities: [ gpu ]

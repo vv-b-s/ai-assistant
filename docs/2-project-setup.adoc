@@ -6,7 +6,7 @@
 == Project Setup
 
 Setting up the project should be pretty straight forward.
-If you feel any struggle, you can always look at the link:../code[code] directory, but keep in mind that learning through error
+If you feel any struggle, you can always look at the link:../code-old[code] directory, but keep in mind that learning through error
 is the best approach to get the most out of this workshop, so don't give into the frustration!
 
 === The Docker set-up
@@ -196,3 +196,259 @@ and configure your application from there.
 As a starting point, make sure to set up your application like this:
 
 image::spring-initializer.png[align=center]
+
+Once your set-up is complete, download the archive extract it and open it in your IDE.
+Most popular IDEs will instantly recognize it's a Gradle/Maven project and will set everything up for you.
+
+==== Connecting Ollama and Database with the application
+
+Before firing up our application for the first time, we need to provide it with the configuration it depends on.
+To do so, we will need to modify the `application.properties` file, located under `src/main/resources`:
+
+[source, properties]
+----
+spring.application.name=adviser
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.datasource.username=adviser
+spring.datasource.password=adviser
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.datasource.url=jdbc:postgresql://localhost:5432/adviser
+spring.jpa.hibernate.ddl-auto=update <.>
+
+spring.ai.ollama.base-url=http://localhost:11434
+spring.ai.ollama.chat.options.model=llama3.2:3b <.>
+----
+<.> For the newbies here, this setting will help us generate all the database tables automatically and keep it up to date with any
+future changes.
+<.> The name of the model should mirror exactly what is written in `run-ollama.sh`.
+
+Now you can run the application to see if it boots up correctly.
+
+==== Creating our first endpoint
+
+To make sure that all of our components are configured correctly, we will create the base of our application.
+To start off, make sure to follow the same project structure.
+It will make it easier to navigate throughout this workshop.
+
+image::projet-structure.png[align=center]
+
+. In the controller folder create a class called `HelloController.java`.
+This will be our welcoming point that checks if everything is up and running.
++
+[source, java]
+----
+package com.contoso.adviser.controller;
+
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@AllArgsConstructor
+@RequestMapping("/hello")
+public class HelloController {
+
+    @GetMapping
+    public String sayHello() {
+        return "Hello!";
+    }
+
+}
+----
++
+Now if you visit http://localhost:8080/hello, you should get a `Hello!` response.
++
+Hurry! 🎉🥳
++
+This means that your application is up and running.
+
+. The next step is to add our first database entity.
+Create a class called `User` within the `model` folder:
++
+[source, java]
+----
+package com.contoso.adviser.model;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter <.>
+@Setter
+@NoArgsConstructor
+@Entity(name = "users")
+public class User {
+
+    @Id <.>
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+    @Version
+    private long version;
+
+    public User(String firstName) {
+        this.firstName = firstName;
+    }
+
+    private String firstName; <.>
+}
+
+----
+<.> For ease of use we are going to use Project Lombok, to skip some boilerplateing, making getters and setters
+<.> `id` and `version` are properties automatically managed by Hibernate.
+They are crucial for every database entity we create.
+<.> This is the first column we are going to see in the database.
+Further on, we will add more properties to this entity.
+
+. The next step will be to crete the `UserRepository` class under the `repository` package.
+This will allow us to access the data related to the User entity:
++
+[source, java]
+----
+package com.contoso.adviser.repository;
+
+import com.contoso.adviser.model.User;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface UserRepository extends CrudRepository<User, Long> {
+}
+----
+
+. Now we need to go back to our `HelloController` and modify our endpoint to accept names.
++
+[source, jave]
+----
+@RestController
+@AllArgsConstructor <.>
+@RequestMapping("/hello")
+public class HelloController {
+
+    private final UserRepository userRepository; <.>
+
+    @GetMapping
+    public String sayHello(@RequestParam String name) {
+        User user = new User(name);
+        userRepository.save(user);
+        return "Hello, %s".formatted(user.getFirstName());
+    }
+
+}
+----
+<.> We add `@AllArgsConstructor` annotation to ensure the injection of `UserRepository` inside the controller.
+<.> Injecting `UserRepository` is as simple as defining it.
++
+Now when we call http://localhost:8080/hello?name=John, for example, we should get `Hello, John` in the response, and have
+John persisted in the database. Another module completed!
+
+. Time to set up the communication with Ollama.
+Inside the `ai` package, create a service class, called `OllamaAIService`.
+This class will serve as a facade, when we want to call Ollama and the LLM:
++
+[source, java]
+----
+package com.contoso.adviser.ai;
+
+import lombok.AllArgsConstructor;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@AllArgsConstructor
+public class OllamaAiService {
+
+    private static final String PROMPT_GENERAL_INSTRUCTIONS = """ <.>
+        Here are the general guidelines to answer the `user_main_prompt`
+
+        """;
+
+
+    private static final String CURRENT_PROMPT_INSTRUCTIONS = """ <.>
+
+        Here's the `user_main_prompt`:
+
+
+        """;
+
+
+    private final OllamaChatModel client;
+
+    public String call(String instructions, String request) {
+        var generalInstructions = new SystemMessage(PROMPT_GENERAL_INSTRUCTIONS.concat(instructions));
+        var promptMessage = new UserMessage(CURRENT_PROMPT_INSTRUCTIONS.concat(request));
+
+        var prompt = new Prompt(List.of(generalInstructions, promptMessage));
+        return client.call(prompt).getResult().getOutput().getText();
+    }
+}
+----
+<.> Starting the template for the LLM's purpose
+<.> Setting the template for the user's prompt.
++
+[TIP]
+====
+LLMs work through text communication. A user prompt contains manly two parts:
+
+* *System prompt* - it determines the purpose of the LLM.
+A LLM is intended to have knowledge in many fields.
+Due to this reason it has to understand different contexts.
+A drawback of that is that when it's asked to do a certain task, it might not get it correctly, or it might not give us the expected response.
+The solution is to assign a role to the LLM, define what our input is going to be and what output we expect.
+This will help it better act as the thin we want it to be.
+
+* *User prompt* - a reflection of the system prompt is the user prompt.
+Once the LLM has its role assigned, all the input from the user will be treated in the way it is described inside the system prompt.
+We will see how this all comes together very soon.
+====
+
+. Now it's time to call the LLM from our `HelloController`.
++
+[source, java]
+----
+public class HelloController {
+
+    ...
+    private final OllamaAiService ollamaAiService;
+
+    @GetMapping
+    public String sayHello(@RequestParam String name) {
+        //create and persist user
+
+        String lastName = ollamaAiService.call(""" <.>
+                You are a helpful assistant. You will be given a first name of a person.
+                Your purpose is to invent the last name of that person and return it as a repsponse.
+                For example:
+
+                User: John
+                AI: Smith
+
+                User: Anne
+                AI: Croft
+
+                You should return only a string containing a single name.
+                """, name);
+
+        return "Hello, %s %s!".formatted(user.getFirstName(), lastName);
+    }
+
+}
+----
+<.> As you can see we give a definite purpose to the LLM. We tell it what the input is going to be, and what we expect as output.
+We also give it some samples, so it can better understand the task.
+The more detailed your system prompt is, the more accurate the LLM will be in responding.
+
+Completing this step concluded the set-up in this chapter.
+Now if you call `http://localhost:8080/hello?name=Jennie` for example, you should see a message like: `Hello, Jennie Reid!`
+
+Are you getting it now?
+If so, then you gotta keep reading through the next chapters!
+We are going to set up our database correctly and implement our aforementioned use cases to make our project complete.
