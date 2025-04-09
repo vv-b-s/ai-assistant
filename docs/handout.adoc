@@ -16,3 +16,4 @@
 include::0-introduction.adoc[]
 include::1-project-structure.adoc[]
 include::2-project-setup.adoc[]
+include::3-setting-up-the-database.adoc[]
