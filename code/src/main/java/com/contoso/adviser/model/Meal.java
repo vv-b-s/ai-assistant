@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.ZonedDateTime;
 import java.util.Set;
 
 @Entity
@@ -29,11 +30,16 @@ public class Meal {
             inverseJoinColumns = @JoinColumn(name = "amount_id"))
     private Set<FoodItemAmount> consumedFoods;
 
+    private ZonedDateTime timestamp;
+
     @ManyToOne
     private User user;
 
-    public Meal(Set<FoodItemAmount> consumedFoods) {
-        this.consumedFoods = consumedFoods;
-    }
+    private String review = "Computing...";
 
+    public Meal(User user, Set<FoodItemAmount> consumedFoods, ZonedDateTime timestamp) {
+        this.user = user;
+        this.consumedFoods = consumedFoods;
+        this.timestamp = timestamp;
+    }
 }

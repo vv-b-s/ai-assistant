@@ -1,0 +1,401 @@
+
+:imagesdir: img
+:source-highlighter: coderay
+:icons: font
+
+== Setting up the endpoints
+
+Concluding this part, means that you are half way there! Where? To the place where you have a functional application, of course.
+We need to start filling up that database, and the way to do it is by setting up some endpoints to take in our data.
+Let's hop on and do this!
+
+=== `UserController`
+
+This is the initial endpoint users encounter when creating an account in our application.
+They are prompted to input their physical metrics, allowing the app to personalize their experience.
+
+. In the DTO folder, create a new record, called `UserDTO`.
++
+[source, java]
+----
+@JsonInclude(JsonInclude.Include.NON_NULL) <.>
+public record UserDTO(Long id, <.>
+        String firstName, String lastName, int age, int height, double weight, Gender gender, int recommendedCal) {
+
+    public UserDTO(User user) {
+        this(user.getId(), user.getFirstName(), user.getLastName(), user.getAge(),
+                user.getHeight(), user.getWeight(), user.getGender(), user.getRecommendedCal());
+    }
+
+    public User toUser() {
+        return new User(firstName, lastName, age, height, weight, gender, recommendedCal);
+    }
+
+}
+----
+<.> Adding this annotation stops null values from showing in the JSON.
+<.> We use the id for the responses. When we create users, we don't need to pass it.
+The database will generate it automatically for us.
++
+TIP: To keep the project minimal we are adding a constructor to convert the entity to DTO and a method to convert the DTO to entity.
+You can feel free to use libraries like MapStruct, if you want to avoid repeating these methods for every DTO we make.
+
+. Next step is to implement our `UserController` class.
+Similarly to our `HelloController`, we are going to make this class in the `controller` package.
+Speaking of the `HelloController`, we don't need it anymore. Feel free to remove it.
++
+[source, java]
+----
+@RestController
+@AllArgsConstructor
+@RequestMapping("/user")
+public class UserController {
+
+    private final UserRepository userRepository;
+
+    @PostMapping
+    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
+        User user = userDTO.toUser();
+        user = userRepository.save(user);
+        return ResponseEntity.ok(new UserDTO(user));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserDTO>> listAllUsers() {
+        List<UserDTO> users = new ArrayList<>();
+        for (User user : userRepository.findAll()) {
+            users.add(new UserDTO(user));
+        }
+
+        return ResponseEntity.ok(users);
+    }
+}
+----
+
+. Finally, let's test that our endpoints are working properly.
+Create a couple of users. You can use a tool like Postman, or a curl similar to the example here:
++
+[source, bash]
+----
+curl --location 'localhost:8080/user' \
+--header 'Content-Type: application/json' \
+--data '{
+    "firstName": "Cave",
+    "lastName": "Johnson",
+    "age": 25,
+    "height": 170,
+    "weight": 75.3,
+    "gender": "MALE",
+    "recommendedCal": 2500
+}'
+----
++
+The response should contain a JSON with the same object, along with the new user's id:
++
+[source, json]
+----
+{
+    "id": 1,
+    "firstName": "Cave",
+    "lastName": "Johnson",
+    "age": 25,
+    "height": 170,
+    "weight": 75.3,
+    "gender": "MALE",
+    "recommendedCal": 2500
+}
+----
++
+And to list all the users, you simply make a GET request to that same endpoint
++
+[source, bash]
+----
+curl --location 'localhost:8080/user'
+----
++
+You should see a list of users as a response:
++
+[source, json]
+----
+[
+    {
+        "id": 1,
+        "firstName": "Cave",
+        "lastName": "Johnson",
+        "age": 25,
+        "height": 170,
+        "weight": 75.3,
+        "gender": "MALE",
+        "recommendedCal": 2500
+    },
+    {
+        "id": 2,
+        ...
+    },
+    {
+        "id": 3,
+        ...
+    },
+]
+----
+
+=== `MealController`
+
+The meal controller will be the next stop where our users will interact with the application.
+Here they will enter their daily meals, and allow the application to analyze them.
+
+. Create the `MealDTO`
++
+[source, java]
+----
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record MealDto(long id, long userId, List<FoodItemAmountDTO> consumedFoods,
+                      long timestamp, String review) {
+
+    public MealDto(Meal meal) {
+        this(meal.getId(), meal.getUser().getId(),
+                meal.getConsumedFoods().stream().map(FoodItemAmountDTO::new).toList(),
+                meal.getTimestamp().toInstant().toEpochMilli(), meal.getReview());
+    }
+}
+----
+
+. Create `FoodItemAmountDTO`
++
+[source, java]
+----
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record FoodItemAmountDTO(String foodName, double amount, String unit, int calories) {
+
+    public FoodItemAmountDTO(FoodItemAmount foodItemAmount) {
+        this(foodItemAmount.getFoodItem().getName(), foodItemAmount.getAmount(),
+                foodItemAmount.getUnit(), foodItemAmount.getCalories());
+    }
+}
+----
+
+. Now it's time to extend our repositories in order to be able to obtain some data.
+Just bear with me, it will all make sense in the end.
+
+* Add a `findByName()` method in your `FoodItem` repository
++
+[source, java]
+----
+@Repository
+public interface FoodItemRepository extends CrudRepository<FoodItem, Long> {
+    Optional<FoodItem> findByName(String name);
+}
+
+----
+
+* Add a `findByFoodAmountAndUnit()` method in your `FoodItemAmount` repository
++
+[source, java]
+----
+@Repository
+public interface FoodItemAmountRepository extends CrudRepository<FoodItemAmount, Long> {
+    Optional<FoodItemAmount> findByFoodAmountAndUnit(FoodItem foodItem, double amount, String unit);
+}
+----
++
+You will also need to create a named query in `FoodItemAmount` in order for this method to work
++
+[source, java]
+----
+@NamedQuery(name = "FoodItemAmount.findByFoodAmountAndUnit",
+        query = "select fia from FoodItemAmount fia where fia.foodItem = ?1 and fia.amount = ?2 and fia.unit = ?3")
+public class FoodItemAmount {...}
+----
+
+* Finally, add a `findAllByUser()` method in your `Meal` repository:
++
+[source, java]
+----
+@Repository
+public interface MealRepository extends CrudRepository<Meal, Long> {
+    List<Meal> findAllByUser(User user);
+}
+----
+
+. Now it's time to implement the controller:
++
+[source, java]
+----
+@RestController
+@AllArgsConstructor
+@RequestMapping("/meal")
+public class MealController {
+
+    private final FoodItemRepository foodItemRepository;
+    private final FoodItemAmountRepository foodItemAmountRepository;
+    private final MealRepository mealRepository;
+    private final UserRepository userRepository;
+
+    @PostMapping("/user/{id}")
+    public ResponseEntity<MealDto> createMeal(@PathVariable("id") Long userId, @RequestBody MealDto mealDto) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        ZonedDateTime timestamp = Instant.ofEpochMilli(mealDto.timestamp()).atZone(UTC);
+        Set<FoodItemAmount> foodItemAmounts = obtainFoodItemAmounts(mealDto.consumedFoods());
+        Meal meal = new Meal(user, foodItemAmounts, timestamp);
+        mealRepository.save(meal);
+        return ResponseEntity.ok(new MealDto(meal));
+    }
+
+    @GetMapping("/user/{id}")
+    public ResponseEntity<List<MealDto>> listAllUserMeals(@PathVariable("id") Long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<MealDto> meals = mealRepository.findAllByUser(user)
+                .stream().map(MealDto::new).toList();
+
+        return ResponseEntity.ok(meals);
+    }
+
+
+    private Set<FoodItemAmount> obtainFoodItemAmounts(List<FoodItemAmountDTO> dtos) {
+        Set<FoodItemAmount> foodItemAmounts = new HashSet<>();
+        for (var dto : dtos) {
+            FoodItem foodItem = foodItemRepository.findByName(dto.foodName())
+                    .orElseGet(() -> foodItemRepository.save(new FoodItem(dto.foodName())));
+
+            FoodItemAmount fia = foodItemAmountRepository.findByFoodAmountAndUnit(foodItem, dto.amount(), dto.unit())
+                    .orElseGet(() -> foodItemAmountRepository.save(new FoodItemAmount(foodItem, dto.amount(), dto.unit())));
+
+            foodItemAmounts.add(fia);
+        }
+
+        return foodItemAmounts;
+    }
+}
+----
+
+. When you're done, you can test the endpoint with the following payload:
++
+[source, json]
+----
+{
+    "timestamp": 1744831242595,
+    "consumedFoods": [
+        {
+            "foodName": "Bread",
+            "amount": 500,
+            "unit": "gr"
+        },
+        {
+            "foodName": "Yogurt",
+            "amount": 400,
+            "unit": "gr"
+        },
+        {
+            "foodName": "Cheese",
+            "amount": 3,
+            "unit": "slices"
+        }
+    ]
+}
+----
++
+And your response should look like this:
++
+[source, json]
+----
+{
+    "id": 1,
+    "userId": 1,
+    "consumedFoods": [
+        {
+            "foodName": "Bread",
+            "amount": 500.0,
+            "unit": "gr",
+            "calories": 0
+        },
+        {
+            "foodName": "Yogurt",
+            "amount": 400.0,
+            "unit": "gr",
+            "calories": 0
+        },
+        {
+            "foodName": "Cheese",
+            "amount": 3.0,
+            "unit": "slices",
+            "calories": 0
+        }
+    ],
+    "timestamp": 1744831242595,
+    "review": "Computing..."
+}
+----
+
+=== The `FoodItemController`
+
+Finally, to wrap the series of controllers we need one last controller, that will allow the user to browse the collected
+knowledge of food our application has gathered, through user input and LLM.
+
+. Create a record, named `FoodItemDTO`:
++
+[source, java]
+----
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record FoodItemDTO(long id, String name, List<String> nutrients) {
+
+    public FoodItemDTO(long id, String name) {
+        this(id, name, null);
+    }
+
+    public FoodItemDTO(FoodItem foodItem) {
+        this(foodItem.getId(), foodItem.getName(),
+                foodItem.getNutrients().stream().map(Nutrient::getName).toList());
+    }
+
+}
+----
+
+. Create `FoodItemController`
++
+[source, java]
+----
+@RestController
+@AllArgsConstructor
+@RequestMapping("/food")
+public class FoodItemController {
+
+    private final FoodItemRepository foodItemRepository;
+
+    @GetMapping
+    public ResponseEntity<List<FoodItemDTO>> listAllFoodItems() {
+        List<FoodItemDTO> foodItems = new ArrayList<>();
+        for (var foodItem : foodItemRepository.findAll()) {
+            FoodItemDTO dto = new FoodItemDTO(foodItem.getId(), foodItem.getName());
+            foodItems.add(dto);
+        }
+
+        return ResponseEntity.ok(foodItems);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<FoodItemDTO>> getByNameOrId(@RequestParam("id") long id, @RequestParam("name") String name) {
+        List<FoodItemDTO> results = Stream.of(foodItemRepository.findById(id), foodItemRepository.findByName(name))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(FoodItemDTO::new)
+                .toList();
+
+        return ResponseEntity.ok(results);
+    }
+}
+----
+
+. Now test all endpoints respectively.
+
+If you have completed this part, then congratulations! 🎉
+You have reached the doorstep to the usage of LLM.
+Follow along with the next chapter where we are going to use the user data to query the LLM, gather food information and
+create meal reviews, that are going to allow the user make better eating choices next time they want to enter something.

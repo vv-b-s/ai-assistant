@@ -11,6 +11,8 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
+@NamedQuery(name = "FoodItemAmount.findByFoodAmountAndUnit",
+        query = "select fia from FoodItemAmount fia where fia.foodItem = ?1 and fia.amount = ?2 and fia.unit = ?3")
 public class FoodItemAmount {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

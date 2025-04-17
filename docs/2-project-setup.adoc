@@ -230,7 +230,7 @@ To make sure that all of our components are configured correctly, we will create
 To start off, make sure to follow the same project structure.
 It will make it easier to navigate throughout this workshop.
 
-image::projet-structure.png[align=center]
+image::project-structure.png[align=center]
 
 . In the controller folder create a class called `HelloController.java`.
 This will be our welcoming point that checks if everything is up and running.
