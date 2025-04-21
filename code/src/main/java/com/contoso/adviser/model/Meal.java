@@ -14,6 +14,8 @@ import java.util.Set;
 @NoArgsConstructor
 public class Meal {
 
+    public static final String DEFAULT_REVIEW_VALUE = "Computing...";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -35,7 +37,8 @@ public class Meal {
     @ManyToOne
     private User user;
 
-    private String review = "Computing...";
+    @Column(columnDefinition = "TEXT")
+    private String review = DEFAULT_REVIEW_VALUE;
 
     public Meal(User user, Set<FoodItemAmount> consumedFoods, ZonedDateTime timestamp) {
         this.user = user;

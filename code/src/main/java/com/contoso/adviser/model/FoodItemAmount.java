@@ -23,7 +23,7 @@ public class FoodItemAmount {
 
     private double amount;
     private String unit;
-    private int calories;
+    private Integer calories;
 
     @ManyToOne
     private FoodItem foodItem;

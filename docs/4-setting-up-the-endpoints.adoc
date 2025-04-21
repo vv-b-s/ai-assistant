@@ -397,5 +397,5 @@ public class FoodItemController {
 
 If you have completed this part, then congratulations! 🎉
 You have reached the doorstep to the usage of LLM.
-Follow along with the next chapter where we are going to use the user data to query the LLM, gather food information and
+Follow along to the next chapter where we are going to use the user data to query the LLM, gather food information and
 create meal reviews, that are going to allow the user make better eating choices next time they want to enter something.

@@ -11,10 +11,11 @@
 :pdf-fontsdir: fonts/
 
 
-= Buid your AI assistant with Ollama, LLM and Spring
+= Build your AI assistant with Ollama, LLM and Spring
 
 include::0-introduction.adoc[]
 include::1-project-structure.adoc[]
 include::2-project-setup.adoc[]
 include::3-setting-up-the-database.adoc[]
 include::4-setting-up-the-endpoints.adoc[]
+include::5-generating-data-with-llm.adoc[]

@@ -4,6 +4,11 @@ import com.contoso.adviser.model.Nutrient;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface NutrientRepository extends CrudRepository<Nutrient, Long> {
+
+    Optional<Nutrient> findByName(String name);
+
 }

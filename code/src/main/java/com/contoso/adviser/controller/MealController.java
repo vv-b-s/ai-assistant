@@ -2,6 +2,7 @@ package com.contoso.adviser.controller;
 
 import com.contoso.adviser.dto.FoodItemAmountDTO;
 import com.contoso.adviser.dto.MealDto;
+import com.contoso.adviser.event.MealCreatedEvent;
 import com.contoso.adviser.model.FoodItem;
 import com.contoso.adviser.model.FoodItemAmount;
 import com.contoso.adviser.model.Meal;
@@ -11,6 +12,7 @@ import com.contoso.adviser.repository.FoodItemRepository;
 import com.contoso.adviser.repository.MealRepository;
 import com.contoso.adviser.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +28,8 @@ import static java.time.ZoneOffset.UTC;
 @AllArgsConstructor
 @RequestMapping("/meal")
 public class MealController {
+
+    private final ApplicationEventPublisher event;
 
     private final FoodItemRepository foodItemRepository;
     private final FoodItemAmountRepository foodItemAmountRepository;
@@ -43,6 +47,8 @@ public class MealController {
         Set<FoodItemAmount> foodItemAmounts = obtainFoodItemAmounts(mealDto.consumedFoods());
         Meal meal = new Meal(user, foodItemAmounts, timestamp);
         mealRepository.save(meal);
+        event.publishEvent(new MealCreatedEvent(meal, this));
+
         return ResponseEntity.ok(new MealDto(meal));
     }
 

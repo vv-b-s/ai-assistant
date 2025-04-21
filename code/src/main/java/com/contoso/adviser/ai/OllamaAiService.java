@@ -11,7 +11,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class OllamaAiService {
+class OllamaAiService {
     private static final String CURRENT_PROMPT_INSTRUCTIONS = """
         
         Here's the `user_main_prompt`:
