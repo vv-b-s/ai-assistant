@@ -588,6 +588,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_the_nutrientgenerator_our_first_llm_generator">6.1. The <code>NutrientGenerator</code>, our first LLM generator</a></li>
 <li><a href="#_caloricinformationgenerator">6.2. <code>CaloricInformationGenerator</code></a></li>
 <li><a href="#_mealreviewgenerator">6.3. <code>MealReviewGenerator</code></a></li>
+<li><a href="#_conclusion">6.4. Conclusion</a></li>
+</ul>
+</li>
+<li><a href="#_app_optimisations_and_ideas">7. App optimisations and ideas</a>
+<ul class="sectlevel2">
+<li><a href="#_setting_up_asynchronous_calls_to_the_llm">7.1. Setting up Asynchronous calls to the LLM</a></li>
+<li><a href="#_logging_important_application_events">7.2. Logging important application events</a></li>
+<li><a href="#_additional_ideas_to_look_far_and_beyond">7.3. Additional ideas to look far and beyond</a></li>
 </ul>
 </li>
 </ul>
@@ -1867,7 +1875,7 @@ we can find it in our database.</td>
     <span style="color:#007">@JoinTable</span>(name = <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">food_item_nutrient</span><span style="color:#710">&quot;</span></span>,
             joinColumns = <span style="color:#007">@JoinColumn</span>(name = <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">food_id</span><span style="color:#710">&quot;</span></span>),
             inverseJoinColumns = <span style="color:#007">@JoinColumn</span>(name = <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">nutrient_id</span><span style="color:#710">&quot;</span></span>))
-    <span style="color:#088;font-weight:bold">private</span> <span style="color:#0a8;font-weight:bold">Set</span>&lt;Nutrient&gt; nutrients; <i class="conum" data-value="1"></i><b>(1)</b>
+    <span style="color:#088;font-weight:bold">private</span> <span style="color:#0a8;font-weight:bold">Set</span>&lt;Nutrient&gt; nutrients = <span style="color:#080;font-weight:bold">new</span> <span style="color:#0a8;font-weight:bold">HashSet</span>&lt;&gt;(); <i class="conum" data-value="1"></i><b>(1)</b>
 
     <span style="color:#088;font-weight:bold">public</span> FoodItem(<span style="color:#0a8;font-weight:bold">String</span> name) {
         <span style="color:#950">this</span>.name = name;
@@ -2173,7 +2181,7 @@ Here they will enter their daily meals, and allow the application to analyze the
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span style="color:#007">@JsonInclude</span>(JsonInclude.Include.NON_NULL)
-<span style="color:#088;font-weight:bold">public</span> record FoodItemAmountDTO(<span style="color:#0a8;font-weight:bold">String</span> foodName, <span style="color:#339;font-weight:bold">double</span> amount, <span style="color:#0a8;font-weight:bold">String</span> unit, <span style="color:#339;font-weight:bold">int</span> calories) {
+<span style="color:#088;font-weight:bold">public</span> record FoodItemAmountDTO(<span style="color:#0a8;font-weight:bold">String</span> foodName, <span style="color:#339;font-weight:bold">double</span> amount, <span style="color:#0a8;font-weight:bold">String</span> unit, <span style="color:#0a8;font-weight:bold">Integer</span> calories) {
 
     <span style="color:#088;font-weight:bold">public</span> FoodItemAmountDTO(FoodItemAmount foodItemAmount) {
         <span style="color:#950">this</span>(foodItemAmount.getFoodItem().getName(), foodItemAmount.getAmount(),
@@ -2273,6 +2281,14 @@ Just bear with me, it will all make sense in the end.</p>
                 .stream().map(MealDto::<span style="color:#080;font-weight:bold">new</span>).toList();
 
         <span style="color:#080;font-weight:bold">return</span> ResponseEntity.ok(meals);
+    }
+
+    <span style="color:#007">@GetMapping</span>(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">/{id}</span><span style="color:#710">&quot;</span></span>)
+    <span style="color:#088;font-weight:bold">public</span> ResponseEntity&lt;MealDto&gt; getMealById(<span style="color:#007">@PathVariable</span>(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">id</span><span style="color:#710">&quot;</span></span>) <span style="color:#0a8;font-weight:bold">Long</span> mealId) {
+        <span style="color:#080;font-weight:bold">return</span> mealRepository.findById(mealId)
+                .map(MealDto::<span style="color:#080;font-weight:bold">new</span>)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -&gt; ResponseEntity.notFound().build());
     }
 
 
@@ -2408,7 +2424,8 @@ knowledge of food our application has gathered, through user input and LLM.</p>
     }
 
     <span style="color:#007">@GetMapping</span>(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">/search</span><span style="color:#710">&quot;</span></span>)
-    <span style="color:#088;font-weight:bold">public</span> ResponseEntity&lt;<span style="color:#0a8;font-weight:bold">List</span>&lt;FoodItemDTO&gt;&gt; getByNameOrId(<span style="color:#007">@RequestParam</span>(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">id</span><span style="color:#710">&quot;</span></span>) <span style="color:#339;font-weight:bold">long</span> id, <span style="color:#007">@RequestParam</span>(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">name</span><span style="color:#710">&quot;</span></span>) <span style="color:#0a8;font-weight:bold">String</span> name) {
+    <span style="color:#088;font-weight:bold">public</span> ResponseEntity&lt;<span style="color:#0a8;font-weight:bold">List</span>&lt;FoodItemDTO&gt;&gt; getByNameOrId(<span style="color:#007">@RequestParam</span>(required = <span style="color:#069">false</span>, defaultValue = <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">0</span><span style="color:#710">&quot;</span></span>, value = <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">id</span><span style="color:#710">&quot;</span></span>) <span style="color:#0a8;font-weight:bold">Long</span> id,
+                                                           <span style="color:#007">@RequestParam</span>(required = <span style="color:#069">false</span>, value = <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">name</span><span style="color:#710">&quot;</span></span>) <span style="color:#0a8;font-weight:bold">String</span> name) {
         <span style="color:#0a8;font-weight:bold">List</span>&lt;FoodItemDTO&gt; results = Stream.of(foodItemRepository.findById(id), foodItemRepository.findByName(name))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -3102,12 +3119,281 @@ To test this, just like we did for the caloric intake, simply create a new meal.
 After a couple of minutes, you should get all the information, including caloric impact and review.</p>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_conclusion">6.4. Conclusion</h3>
+<div class="paragraph">
+<p>If you reached the end of this chapter, then congratulations!
+You have successfully created your small nutrition adviser app with the ability to use LLM for making more advanced decisions quicker.
+If you enjoyed this part, please keep it up and stay with the next final chapter, where we are going to implement some asynchronous
+operations that will allow us to have a smoother user experience and give you some ideas what you can do to improve the application,
+while exploring every part of it.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_app_optimisations_and_ideas">7. App optimisations and ideas</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As mentioned earlier, we are closing up the end of our work shop and the goal of this chapter will wrap things up.
+This does not necessarily mean that you have to stop here.
+Get inspired! Think of ideas how you can extend or improve the functionality of this application, or how you can apply the
+acquired knowledge in your current or future projects.</p>
+</div>
+<div class="paragraph">
+<p>Without much further ado. Let&#8217;s get to the final steps of completing our project.</p>
+</div>
+<div class="sect2">
+<h3 id="_setting_up_asynchronous_calls_to_the_llm">7.1. Setting up Asynchronous calls to the LLM</h3>
+<div class="paragraph">
+<p>As I mentioned in the earlier chapters, we were supposed to call the LLM asynchronously.
+The reason for that is due to the slow responses that the LLM computes.
+In a real world scenario, where LLMs are powered by powerful and expensive servers, this won&#8217;t be such an issue,
+but perhaps you might want to offload some of the computations that the user is not concerned to get right away.
+In this section I am going to show you how this could be done, using Spring&#8217;s <code>@Async</code> capabilities.</p>
+</div>
+<div class="sect3">
+<h4 id="_enabling_the_async_annotation">7.1.1. Enabling the <code>@Async</code> annotation</h4>
+<div class="paragraph">
+<p>In order to run your code asynchronously, you simply need to place the <code>@org.springframework.scheduling.annotation.Asynchronus</code>
+annotation on a public bean method that you want to make asynchronous.
+Before you are able to do that, though, you will need to first enable those capabilities, so when your Spring application
+boots up, it will scan and activate the methods, annotated with <code>@Async</code>.</p>
+</div>
+<div class="paragraph">
+<p>To enable asynchronous invocations, simply create a configuration class in the config package.
+I shall call mine <code>SpringAsyncConfiguration</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span style="color:#080;font-weight:bold">import</span> <span style="color:#B44;font-weight:bold">org.springframework.context.annotation.Configuration</span>;
+<span style="color:#080;font-weight:bold">import</span> <span style="color:#B44;font-weight:bold">org.springframework.scheduling.annotation.EnableAsync</span>;
+
+<span style="color:#007">@Configuration</span>
+<span style="color:#007">@EnableAsync</span>
+<span style="color:#088;font-weight:bold">public</span> <span style="color:#339;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">SpringAsyncConfiguration</span> {
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now when you start up the application, Spring will know that all public methods annotated with <code>@Async</code> should be run asynchronously.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_making_llm_calls_asynchronous">7.1.2. Making LLM calls asynchronous</h4>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Although this part is fairly easy, you might feel a bit struggle, making everything work in asynchronous order.
+Don&#8217;t let that discourage you. If you ever get stuck you can always use techniques such as logging, to help you out and see what&#8217;s happening.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Right now we made our implementation so that all of our LLM calls are in one place only - in the <code>NutritionAdviserService</code>
+If you dealt with asynchronous invocations before, you should already know that converting out <code>obtainMealDataFromLLM</code> method to this&#8230;&#8203;</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">    <span style="color:#088;font-weight:bold">public</span> CompletableFuture&lt;<span style="color:#0a8;font-weight:bold">Void</span>&gt; obtainMealDataFromLLM(MealCreatedEvent event) {
+        ...
+        return CompletableFuture.completedFuture(<span style="color:#069">null</span>);
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>&#8230;&#8203;should be enough to run all the LLM calls asynchronously.</p>
+</div>
+<div class="paragraph">
+<p>Although correct, this approach won&#8217;t be good enough, because it will not run our LLM calls separately, but rather it will run them
+sequentially, which is kind of not using all the available resources we have, to make this quicker.
+One other issue is that with this approach we are constrained by Spring&#8217;s design of running asynchronous methods meaning that:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You can&#8217;t call asynchronous methods if they are private</p>
+</li>
+<li>
+<p>You can&#8217;t call asynchronous methods in the same class even if they are public</p>
+</li>
+<li>
+<p>You can only call one asynchronous method from a bean outside.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Since this is an event handler, we can make all the three LLM methods inside public and async, or there could be a simpler
+approach. Let&#8217;s make a helper class in the <code>utils</code> folder and call it <code>AsyncInvocationService</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span style="color:#007">@Service</span>
+<span style="color:#007">@RequiredArgsConstructor</span>
+<span style="color:#088;font-weight:bold">public</span> <span style="color:#339;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">AsyncInvocationService</span> {
+
+    <span style="color:#007">@Async</span>
+    <span style="color:#007">@Transactional</span>(Transactional.TxType.REQUIRES_NEW) <i class="conum" data-value="1"></i><b>(1)</b>
+    <span style="color:#088;font-weight:bold">public</span> CompletableFuture&lt;<span style="color:#0a8;font-weight:bold">Void</span>&gt; run(<span style="color:#0a8;font-weight:bold">Runnable</span> procedure) {
+        <span style="color:#080;font-weight:bold">try</span> {
+            procedure.run(); <i class="conum" data-value="2"></i><b>(2)</b>
+            <span style="color:#080;font-weight:bold">return</span> CompletableFuture.completedFuture(<span style="color:#069">null</span>);
+        } <span style="color:#080;font-weight:bold">catch</span> (<span style="color:#C00;font-weight:bold">Exception</span> e) {
+            <span style="color:#777">//log the error</span>
+            <span style="color:#080;font-weight:bold">throw</span> <span style="color:#080;font-weight:bold">new</span> <span style="color:#C00;font-weight:bold">IllegalStateException</span>(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">Failed to execute asynchronous task</span><span style="color:#710">&quot;</span></span>, e);
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Since all the invocations do modifications to the database and this call is asynchronous, we want to avoid any optimistic
+locks due to running the action on a separate thread. To do so, we will tell Hibernate to start a new transaction here.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>All the code we want to run asynchronously will be executed at this point, leaving the main thread clean from the exceptional
+time delays the LLM needs to compute its data.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now when we go back to our <code>NutritionAdviserService</code>, we can make our <code>obtainMealDataFromLLM</code> method look like so:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java">    <span style="color:#088;font-weight:bold">private</span> <span style="color:#088;font-weight:bold">final</span> AsyncInvocationService async;
+
+    ...
+
+    <span style="color:#007">@EventListener</span>
+    <span style="color:#088;font-weight:bold">public</span> <span style="color:#339;font-weight:bold">void</span> obtainMealDataFromLLM(MealCreatedEvent event) {
+        Meal meal = event.getMeal();
+        async.run(() -&gt; obtainNutrientData(meal));
+        async.run(() -&gt; obtainCaloricData(meal));
+        async.run(() -&gt; obtainMealReview(meal));
+    }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Pretty straightforward, right?</p>
+</div>
+<div class="paragraph">
+<p>Now when you create a new meal, you&#8217;ll most probably not see the additional data, such as meal review or caloric information
+you used to see before, but on the other hand the task will complete in an instant.
+If you wait for 1-2 minutes and try to get that information through the GET requests, though, you should eventually see those
+results being generated right in front of your eyes.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_logging_important_application_events">7.2. Logging important application events</h3>
+<div class="paragraph">
+<p>Adding asynchronous invocations can sometimes create quite a headache, as running the code on a separate thread,
+prevents any errors form appearing in the application&#8217;s log.
+This can sometimes be a problem, as you are not able to tackle what is going on and why your actions have no outcome.
+Debugging might also be difficult, as breakpoints can sometimes be missed by the IDE.
+To help us out in this scenario, we will need to add logs to the most important places, where we feel like something might go wrong.</p>
+</div>
+<div class="paragraph">
+<p>We just need to simply create one more class, called <code>LoggerConfiguration</code> in the <code>config</code> package.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span style="color:#007">@Configuration</span>
+<span style="color:#088;font-weight:bold">public</span> <span style="color:#339;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">LoggerConfiguration</span> {
+
+    <span style="color:#007">@Bean</span>
+    <span style="color:#088;font-weight:bold">public</span> <span style="color:#0a8;font-weight:bold">Logger</span> producerLogger(InjectionPoint injectionPoint) {
+        <span style="color:#080;font-weight:bold">return</span> <span style="color:#0a8;font-weight:bold">Logger</span>.getLogger(injectionPoint.getMember().getDeclaringClass().getName());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This bean configuration class will autowire an instance of a Logger, wherever we need one.
+<br>
+Here is one example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span style="color:#007">@Service</span>
+<span style="color:#007">@RequiredArgsConstructor</span>
+<span style="color:#088;font-weight:bold">public</span> <span style="color:#339;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">AsyncInvocationService</span> {
+
+    <span style="color:#088;font-weight:bold">private</span> <span style="color:#088;font-weight:bold">final</span> <span style="color:#0a8;font-weight:bold">Logger</span> log;
+
+    <span style="color:#007">@Async</span>
+    <span style="color:#007">@Transactional</span>(Transactional.TxType.REQUIRES_NEW)
+    <span style="color:#088;font-weight:bold">public</span> CompletableFuture&lt;<span style="color:#0a8;font-weight:bold">Void</span>&gt; run(<span style="color:#0a8;font-weight:bold">Runnable</span> procedure) {
+        <span style="color:#080;font-weight:bold">try</span> {
+            procedure.run();
+            <span style="color:#080;font-weight:bold">return</span> CompletableFuture.completedFuture(<span style="color:#069">null</span>);
+        } <span style="color:#080;font-weight:bold">catch</span> (<span style="color:#C00;font-weight:bold">Exception</span> e) {
+            log.severe(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">Failed to execute asynchronous task: %s</span><span style="color:#710">&quot;</span></span>.formatted(e.getMessage()));
+            <span style="color:#080;font-weight:bold">throw</span> <span style="color:#080;font-weight:bold">new</span> <span style="color:#C00;font-weight:bold">IllegalStateException</span>(<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">Failed to execute asynchronous task</span><span style="color:#710">&quot;</span></span>, e);
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>I will leave you to decide where are the important places to place your log messages and see how everything comes into action. 😉</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_additional_ideas_to_look_far_and_beyond">7.3. Additional ideas to look far and beyond</h3>
+<div class="paragraph">
+<p>We’ve reached the end of this workshop!</p>
+</div>
+<div class="paragraph">
+<p>Following a guide is great, but you know what will really deepen your understanding? Getting your hands dirty.</p>
+</div>
+<div class="paragraph">
+<p>Here are a few ideas to take this project further:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Think of other areas where you can apply LLM computations.</p>
+</li>
+<li>
+<p>Extend the app with features you feel are missing.</p>
+</li>
+<li>
+<p>Experiment with new prompts to improve response quality.</p>
+</li>
+<li>
+<p>Try using different LLM models and compare the results.</p>
+</li>
+<li>
+<p>Integrate this idea into your own project.</p>
+</li>
+<li>
+<p>Research how to fine-tune an LLM for more topic-specific accuracy.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>I truly hope you enjoyed this workshop and that it inspired you to build your own LLM-powered applications!
+Let’s aim for a future where AI and LLMs aren&#8217;t seen as threats to our jobs, but as powerful tools that bridge the gap between vast knowledge and fast action.</p>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-04-21 22:01:04 +0300
+Last updated 2025-04-27 13:51:21 +0300
 </div>
 </div>
 <script>

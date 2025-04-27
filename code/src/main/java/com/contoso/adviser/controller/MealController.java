@@ -65,6 +65,13 @@ public class MealController {
         return ResponseEntity.ok(meals);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<MealDto> getMealById(@PathVariable("id") Long mealId) {
+        return mealRepository.findById(mealId)
+                .map(MealDto::new)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
     private Set<FoodItemAmount> obtainFoodItemAmounts(List<FoodItemAmountDTO> dtos) {
         Set<FoodItemAmount> foodItemAmounts = new HashSet<>();

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -29,7 +30,7 @@ public class FoodItem {
     @JoinTable(name = "food_item_nutrient",
             joinColumns = @JoinColumn(name = "food_id"),
             inverseJoinColumns = @JoinColumn(name = "nutrient_id"))
-    private Set<Nutrient> nutrients;
+    private Set<Nutrient> nutrients = new HashSet<>();
 
     public FoodItem(String name) {
         this.name = name;

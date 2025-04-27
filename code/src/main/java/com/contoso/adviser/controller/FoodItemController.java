@@ -33,10 +33,12 @@ public class FoodItemController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<FoodItemDTO>> getByNameOrId(@RequestParam("id") long id, @RequestParam("name") String name) {
+    public ResponseEntity<List<FoodItemDTO>> getByNameOrId(@RequestParam(required = false, defaultValue = "0", value = "id") Long id,
+                                                           @RequestParam(required = false, value = "name") String name) {
         List<FoodItemDTO> results = Stream.of(foodItemRepository.findById(id), foodItemRepository.findByName(name))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
+                .distinct()
                 .map(FoodItemDTO::new)
                 .toList();
 

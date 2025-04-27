@@ -583,3 +583,10 @@ We take the AI response as-is and update the `review` column of our `Meal` table
 To test this, just like we did for the caloric intake, simply create a new meal.
 After a couple of minutes, you should get all the information, including caloric impact and review.
 
+=== Conclusion
+
+If you reached the end of this chapter, then congratulations!
+You have successfully created your small nutrition adviser app with the ability to use LLM for making more advanced decisions quicker.
+If you enjoyed this part, please keep it up and stay with the next final chapter, where we are going to implement some asynchronous
+operations that will allow us to have a smoother user experience and give you some ideas what you can do to improve the application,
+while exploring every part of it.

@@ -9,6 +9,7 @@ import com.contoso.adviser.repository.FoodItemAmountRepository;
 import com.contoso.adviser.repository.FoodItemRepository;
 import com.contoso.adviser.repository.MealRepository;
 import com.contoso.adviser.repository.NutrientRepository;
+import com.contoso.adviser.utils.AsyncInvocationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -17,11 +18,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class NutritionAdviserService {
+
+    private final Logger log;
+    private final AsyncInvocationService async;
 
     private final NutrientGenerator nutrientGenerator;
     private final CaloricInformationGenerator caloricInformationGenerator;
@@ -35,9 +40,9 @@ public class NutritionAdviserService {
     @EventListener
     public void obtainMealDataFromLLM(MealCreatedEvent event) {
         Meal meal = event.getMeal();
-        obtainNutrientData(meal);
-        obtainCaloricData(meal);
-        obtainMealReview(meal);
+        async.run(() -> obtainNutrientData(meal));
+        async.run(() -> obtainCaloricData(meal));
+        async.run(() -> obtainMealReview(meal));
     }
 
     private void obtainNutrientData(Meal meal) {
@@ -48,6 +53,9 @@ public class NutritionAdviserService {
         if (foodItemsWithoutNutrients.isEmpty()) {
             return;
         }
+
+        log.info("Getting nutrients for food items: %s".formatted(foodItemsWithoutNutrients.stream()
+                .map(FoodItem::getName).collect(Collectors.joining(", "))));
 
         Map<FoodItem, List<String>> foodNutrients = nutrientGenerator.obtainNutrientData(foodItemsWithoutNutrients);
 
@@ -64,6 +72,9 @@ public class NutritionAdviserService {
                 foodItemRepository.save(foodItem);
             }
         }
+
+        log.info("Completed getting nutrients for food items: %s".formatted(foodItemsWithoutNutrients.stream()
+                .map(FoodItem::getName).collect(Collectors.joining(", "))));
     }
 
     private void obtainCaloricData(Meal meal) {
@@ -74,6 +85,10 @@ public class NutritionAdviserService {
             return;
         }
 
+        log.info("Getting caloric information for FoodItemAmounts: %s"
+                .formatted(foodAmountsWithoutCaloricData.stream().map(FoodItemAmount::getId).map(id -> id + "")
+                        .collect(Collectors.joining(", "))));
+
         Map<FoodItemAmount, Integer> obtainedCaloricInformation = caloricInformationGenerator
                 .computeCaloricInformation(foodAmountsWithoutCaloricData);
 
@@ -82,6 +97,10 @@ public class NutritionAdviserService {
             foodItemAmount.setCalories(entry.getValue());
             foodItemAmountRepository.save(foodItemAmount);
         }
+
+        log.info("Completed getting FoodItemAmounts: %s"
+                .formatted(foodAmountsWithoutCaloricData.stream().map(FoodItemAmount::getId).map(id -> id + "")
+                        .collect(Collectors.joining(", "))));
     }
 
     private void obtainMealReview(Meal meal) {
@@ -89,9 +108,13 @@ public class NutritionAdviserService {
             return;
         }
 
+        log.info("Obtaining meal review for meal %d".formatted(meal.getId()));
+
         String review = mealReviewGenerator.generateMealAnalysis(meal);
         meal.setReview(review);
         mealRepository.save(meal);
+
+        log.info("Meal review for meal %d is persisted.".formatted(meal.getId()));
     }
 
     private Map<String, Nutrient> computeNutrientMap(Set<String> nutrientNames) {
