@@ -46,6 +46,7 @@ public class NutritionAdviserService {
     }
 
     private void obtainNutrientData(Meal meal) {
+        meal = mealRepository.reattachEntity(meal);
         List<FoodItem> foodItemsWithoutNutrients = meal.getConsumedFoods().stream()
                 .map(FoodItemAmount::getFoodItem)
                 .filter(foodItem -> foodItem.getNutrients().isEmpty()).toList();
@@ -78,6 +79,8 @@ public class NutritionAdviserService {
     }
 
     private void obtainCaloricData(Meal meal) {
+        meal = mealRepository.reattachEntity(meal);
+
         List<FoodItemAmount> foodAmountsWithoutCaloricData = meal.getConsumedFoods()
                 .stream().filter(fia -> fia.getCalories() == null).toList();
 
@@ -104,6 +107,8 @@ public class NutritionAdviserService {
     }
 
     private void obtainMealReview(Meal meal) {
+        meal = mealRepository.reattachEntity(meal);
+
         if (!meal.getReview().equals(Meal.DEFAULT_REVIEW_VALUE)) {
             return;
         }

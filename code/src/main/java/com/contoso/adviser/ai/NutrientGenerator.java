@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Service
@@ -68,10 +69,10 @@ class NutrientGenerator {
             """;
 
     private final OllamaAiService ollamaAiService;
-
+    private final Logger logger;
 
     public Map<FoodItem, List<String>> obtainNutrientData(Collection<FoodItem> foodItems) {
-        Map<String, FoodItem> reverseMap = foodItems.stream().collect(Collectors.toMap(FoodItem::getName, fi -> fi));
+        Map<String, FoodItem> reverseMap = foodItems.stream().collect(Collectors.toMap(fi -> fi.getName().toLowerCase(), fi -> fi));
 
         String foodList = String.join(", ", reverseMap.keySet());
         String aiOutput = ollamaAiService.call(PROMPT, foodList);
@@ -80,7 +81,12 @@ class NutrientGenerator {
         try {
             FoodItemNutrients[] foodNutrientResult = JsonUtils.toObject(aiOutput, FoodItemNutrients[].class);
             for (var item : foodNutrientResult) {
-                FoodItem foodItem = reverseMap.get(item.name);
+                FoodItem foodItem = reverseMap.get(item.name.toLowerCase());
+                if (foodItem == null) {
+                    logger.warning("Invalid food item for: %s".formatted(item.name));
+                    continue;
+                }
+
                 result.putIfAbsent(foodItem, item.nutrients);
             }
 

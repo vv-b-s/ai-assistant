@@ -22,6 +22,9 @@ public class AsyncInvocationService {
             return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
             log.severe("Failed to execute asynchronous task: %s".formatted(e.getMessage()));
+            for (StackTraceElement traceElement : e.getStackTrace()) {
+                log.severe("\tat " + traceElement);
+            }
             throw new IllegalStateException("Failed to execute asynchronous task", e);
         }
     }

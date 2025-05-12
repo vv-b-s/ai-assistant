@@ -8,12 +8,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
 class CaloricInformationGenerator {
-
     record FoodCaloricImpact(String name, int calories) {
     }
 
@@ -68,12 +69,13 @@ class CaloricInformationGenerator {
             """;
 
     private final OllamaAiService ollamaAiService;
+    private final Logger logger;
 
     public Map<FoodItemAmount, Integer> computeCaloricInformation(Collection<FoodItemAmount> foodItemAmounts) {
         Map<String, FoodItemAmount> amountDataInput = new HashMap<>();
         for (var foodItemAmount : foodItemAmounts) {
-            String listItem = "%f %s %s".formatted(foodItemAmount.getAmount(), foodItemAmount.getUnit(),
-                    foodItemAmount.getFoodItem().getName());
+            String listItem = "%.2f %s %s".formatted(foodItemAmount.getAmount(), foodItemAmount.getUnit(),
+                    foodItemAmount.getFoodItem().getName()).toLowerCase(Locale.ROOT);
             amountDataInput.put(listItem, foodItemAmount);
         }
 
@@ -86,7 +88,12 @@ class CaloricInformationGenerator {
             //relations are managed.
             Map<FoodItemAmount, Integer> computedCalories = new HashMap<>();
             for (var result : parsedResults) {
-                FoodItemAmount foodItemAmount = amountDataInput.get(result.name);
+                FoodItemAmount foodItemAmount = amountDataInput.get(result.name.toLowerCase());
+                if (foodItemAmount == null) {
+                    logger.warning("Invalid foodItemAmount for %s".formatted(result.name));
+                    continue;
+                }
+
                 computedCalories.put(foodItemAmount, result.calories);
             }
 

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
@@ -88,6 +89,7 @@ class MealReviewGenerator {
             """;
 
     private final OllamaAiService ollamaAiService;
+    private final Logger logger;
 
     public String generateMealAnalysis(Meal meal) {
         User user = meal.getUser();
@@ -99,6 +101,7 @@ class MealReviewGenerator {
                 .stream().map(fia -> "%f %s %s".formatted(fia.getAmount(), fia.getUnit(), fia.getFoodItem().getName()))
                 .toList();
 
+        logger.info("Generating review for %s".formatted(consumedFoods));
         MealAIInput aiInput = new MealAIInput(user.getAge(), gender, height, weight, user.getRecommendedCal(), consumedFoods);
 
         try {

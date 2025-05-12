@@ -12,4 +12,8 @@ public interface MealRepository extends CrudRepository<Meal, Long> {
 
     List<Meal> findAllByUser(User user);
 
+    default Meal reattachEntity(final Meal meal) {
+        return findById(meal.getId())
+                .orElseThrow(() -> new IllegalStateException("Unable to fetch a meal with id %d".formatted(meal.getId())));
+    }
 }
