@@ -6,8 +6,35 @@
 == Project Setup
 
 Setting up the project should be pretty straight forward.
-If you feel any struggle, you can always look at the link:../code-old[code] directory, but keep in mind that learning through error
+If you feel any struggle, you can always checkout to the `solution` branch where you will find the `code` directory in the file tree, but keep in mind that learning through error
 is the best approach to get the most out of this workshop, so don't give into the frustration!
+
+=== Setting up the SpringBoot application
+
+Provisioning a SpringBoot app, should be a fairly easy task. You can just simply click https://start.spring.io/#!type=gradle-project&language=java&platformVersion=3.5.5&packaging=jar&jvmVersion=17&groupId=com.contoso&artifactId=adviser&name=adviser&description=Nutrition%20adviser&packageName=com.contoso.adviser&dependencies=spring-ai-ollama,data-jpa,web,actuator,devtools,postgresql,lombok[this link] or visit https://start.spring.io
+and configure your application from there.
+
+If you choose the latter, make sure to set up your application like this:
+
+image::spring-initializer.png[align=center]
+
+Once your set-up is complete, download the archive extract it and open it in your IDE.
+Most popular IDEs will instantly recognize it's a Gradle/Maven project and will set everything up for you.
+
+[TIP]
+====
+In case you don't want to run your project through an IDE or have any issues with setting up gradle, you can always use the built-in `gradlew` script, coming with your packed project.
+
+To run the application from the terminal, you can execute
+
+[source, bash]
+----
+#assuming ./ is the root of your extracted project.
+./gradlew boot run
+----
+====
+
+> But hold your horses! We're not done setting up the project yet.
 
 === The Docker set-up
 
@@ -188,17 +215,6 @@ Ollama is running
 ----
 
 If that is all set, we can move tho the next step.
-
-=== Setting up the SpringBoot application
-
-Provisioning a SpringBoot app, should be a fairly easy task. You can just simply visit the https://start.spring.io/[Spring Initializer]
-and configure your application from there.
-As a starting point, make sure to set up your application like this:
-
-image::spring-initializer.png[align=center]
-
-Once your set-up is complete, download the archive extract it and open it in your IDE.
-Most popular IDEs will instantly recognize it's a Gradle/Maven project and will set everything up for you.
 
 ==== Connecting Ollama and Database with the application
 

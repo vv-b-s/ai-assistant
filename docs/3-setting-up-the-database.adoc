@@ -76,6 +76,16 @@ public class User {
 CAUTION: This might break your current database.
 I recommend you to delete all existing tables and let Hibernate generate new ones.
 
++
+In adition we also need to introduce implementation for the `Gender` enum:
++
+[source, java]
+----
+public enum Gender {
+    MALE, FEMALE
+}
+----
+
 . Next step is to add our `Meal` entity. It will store the information of all the meals the user has eaten.
 +
 [source, java]
