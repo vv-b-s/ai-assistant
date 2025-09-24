@@ -1,7 +1,7 @@
 package com.contoso.adviser.controller;
 
 import com.contoso.adviser.dto.FoodItemAmountDTO;
-import com.contoso.adviser.dto.MealDto;
+import com.contoso.adviser.dto.MealDTO;
 import com.contoso.adviser.event.MealCreatedEvent;
 import com.contoso.adviser.model.FoodItem;
 import com.contoso.adviser.model.FoodItemAmount;
@@ -37,7 +37,7 @@ public class MealController {
     private final UserRepository userRepository;
 
     @PostMapping("/user/{id}")
-    public ResponseEntity<MealDto> createMeal(@PathVariable("id") Long userId, @RequestBody MealDto mealDto) {
+    public ResponseEntity<MealDTO> createMeal(@PathVariable("id") Long userId, @RequestBody MealDTO mealDto) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return ResponseEntity.notFound().build();
@@ -49,26 +49,26 @@ public class MealController {
         mealRepository.save(meal);
         event.publishEvent(new MealCreatedEvent(meal, this));
 
-        return ResponseEntity.ok(new MealDto(meal));
+        return ResponseEntity.ok(new MealDTO(meal));
     }
 
     @GetMapping("/user/{id}")
-    public ResponseEntity<List<MealDto>> listAllUserMeals(@PathVariable("id") Long userId) {
+    public ResponseEntity<List<MealDTO>> listAllUserMeals(@PathVariable("id") Long userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return ResponseEntity.notFound().build();
         }
 
-        List<MealDto> meals = mealRepository.findAllByUser(user)
-                .stream().map(MealDto::new).toList();
+        List<MealDTO> meals = mealRepository.findAllByUser(user)
+                .stream().map(MealDTO::new).toList();
 
         return ResponseEntity.ok(meals);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MealDto> getMealById(@PathVariable("id") Long mealId) {
+    public ResponseEntity<MealDTO> getMealById(@PathVariable("id") Long mealId) {
         return mealRepository.findById(mealId)
-                .map(MealDto::new)
+                .map(MealDTO::new)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
