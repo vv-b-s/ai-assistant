@@ -9,7 +9,9 @@ We have finally reached the part where the magic happens!
 In this section we are going to take the data we collected form the user and task our local AI to generate useful data
 that is going to be presented to the user when they demand it.
 Generally the user would be interested how did the meal impact their nutrition and what are the nutritional values of the foods they eat.
-Let's see how we can incorporate our LLM integration to do this for us.
+The series of data generators we are going to create here are also intended to make the interaction with the LLM seamless, meaning that throughout the usage of application, the end user will not be aware that an LLM runs under the hood. 😎
+ +
+Now, without further ado, let's see how we can incorporate our LLM integration to do this for us.
 
 The first part is to create proper service classes that are going to give our LLM different tasks, based on the purpose
 it is meant to do.
@@ -42,18 +44,37 @@ adviser.
 The nutrient generator's task is to create nutrient data for our foods.
 If you remember we did not do anything for the Nutrient entity in our previous chapters.
 This is the place where we are finally going to do something about it.
-Inside your `ai` package, create a class called `NutrientGenerator` and add the following implementation:
+Inside your `ai` package, create a class called `NutrientGenerator` and add let's start implementing!
 
+. First we can define the outlines of our class.
+We want to annotate it as a `@Service` and import our dependencies.
+We can also define our method that is going to communicate with the rest of our services:
++
 [source, java]
 ----
 @Service
 @RequiredArgsConstructor
 class NutrientGenerator {
 
-    record FoodItemNutrients(String name, List<String> nutrients) {
-    }
+    private final OllamaAiService ollamaAiService;
 
-    private static final String PROMPT = """ <.>
+    public Map<FoodItem, List<String>> obtainNutrientData(Collection<FoodItem> foodItems) {
+        ...
+    }
+}
+----
+
+. The next step is to define our prompt.
+This is where we are going to shape the data that is unique to the food items we are going to pass to the LLM.
+We are also going to tell the LLM what format it should give us response in, so we can parse it properly afterward.
++
+[source, java]
+----
+class NutrientGenerator {
+
+    // definitions...
+
+    private static final String PROMPT = """
             You're a helpful assistant. You are going to be given a list of foods.
             In return you have to respond with a json formatted list of the nutrients associated with that food.
             For example:
@@ -101,8 +122,23 @@ class NutrientGenerator {
             Please answer only in the format shown in "----". Do not add anything else to your answer.
             """;
 
-    private final OllamaAiService ollamaAiService;
+    // implementations...
+}
+----
++
+TIP: The prompt should be consistent and exact.
+You need to specify exactly what you want the LLM to do, otherwise the results might not be predictable.
 
+. Finally, we are going to implement the `obtainNutrientData` method, where the real work happens:
++
+[source, java]
+----
+@Service
+@RequiredArgsConstructor
+class NutrientGenerator {
+
+    private static final String PROMPT = ...;
+    private final OllamaAiService ollamaAiService;
 
     public Map<FoodItem, List<String>> obtainNutrientData(Collection<FoodItem> foodItems) {
         Map<String, FoodItem> reverseMap = foodItems.stream().collect(Collectors.toMap(FoodItem::getName, fi -> fi));
@@ -112,7 +148,7 @@ class NutrientGenerator {
 
         Map<FoodItem, List<String>> result = new HashMap<>();
         try {
-            FoodItemNutrients[] foodNutrientResult = JsonUtils.toObject(aiOutput, FoodItemNutrients[].class);
+            FoodItemNutrients[] foodNutrientResult = JsonUtils.toObject(aiOutput, FoodItemNutrients[].class); <.>
             for (var item : foodNutrientResult) {
                 FoodItem foodItem = reverseMap.get(item.name);
                 result.putIfAbsent(foodItem, item.nutrients);
@@ -123,14 +159,44 @@ class NutrientGenerator {
             //handle the exception
         }
     }
+
+    record FoodItemNutrients(String name, List<String> nutrients) { } <.>
 }
 ----
-<.> The prompt should be consistent and exact.
-You need to specify exactly what you want the LLM to do, otherwise the results might not be predictable.
+<.> The `JsonUtils` class is a helper class definded by us to help us to seamlessly serialize and deserialize JSON strings into Java objects.
+Read further to find out more.
+<.> `FoodItemNutrients` is not mandatory, but it will help us turn the LLM output into usable Java objects.
 
 NOTE: Throughout the implementation of the generators, we are not going to produce or modify any of the entities.
 This is a task that should be performed elsewhere, as we might need to validate the data or do something else with it,
 before we persist it.
+
+.Defining the `JsonUtils` class
+[TIP]
+====
+As previously mentioned, the `JsonUtils` class is used to wrap the invocations of the jackson converters.
+You can define your `JusonUtils` class in the `utils` package like this.
+[source, java]
+----
+public final class JsonUtils {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    private JsonUtils() {
+
+    }
+
+    public static <T> T toObject(String json, Class<T> clazz) throws JsonProcessingException {
+        return OBJECT_MAPPER.readValue(json, clazz);
+    }
+
+    public static <T> String toJson(T object) throws JsonProcessingException {
+        return OBJECT_MAPPER.writeValueAsString(object);
+    }
+
+}
+----
+====
 
 Now we want to test if our generator works properly.
 To do so, we have to connect it to our meal controller.
@@ -177,7 +243,9 @@ The next step is to implement logic for invoking the Nutrient generator:
 ----
 public class NutritionAdviserService {
 
-    //Injections
+    private final NutrientGenerator nutrientGenerator;
+    private final FoodItemRepository foodItemRepository;
+    private final NutrientRepository nutrientRepository;
 
     @EventListener
     public void obtainMealDataFromLLM(MealCreatedEvent event) {
@@ -397,6 +465,7 @@ We will avoid doing anything to the data at this point and move onto the `Nutrit
 ----
 public class NutritionAdviserService {
 
+    //Don't forget to import CaloricInformationGenerator and FoodItemAmountRepository
     ...
     @EventListener
     public void obtainMealDataFromLLM(MealCreatedEvent event) {
@@ -554,7 +623,7 @@ Finally, we are going to add invocation in our `NutritionAdviserService`
 ----
 public class NutritionAdviserService {
 
-    //definitions
+    //You know the drill already. Make sure your imports are consistent.
 
     @EventListener
     public void obtainMealDataFromLLM(MealCreatedEvent event) {
