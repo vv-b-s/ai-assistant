@@ -144,22 +144,6 @@ You should see a list of users as a response:
 The meal controller will be the next stop where our users will interact with the application.
 Here they will enter their daily meals, and allow the application to analyze them.
 
-. Create the `MealDTO`
-+
-[source, java]
-----
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public record MealDto(long id, long userId, List<FoodItemAmountDTO> consumedFoods,
-                      long timestamp, String review) {
-
-    public MealDto(Meal meal) {
-        this(meal.getId(), meal.getUser().getId(),
-                meal.getConsumedFoods().stream().map(FoodItemAmountDTO::new).toList(),
-                meal.getTimestamp().toInstant().toEpochMilli(), meal.getReview());
-    }
-}
-----
-
 . Create `FoodItemAmountDTO`
 +
 [source, java]
@@ -170,6 +154,22 @@ public record FoodItemAmountDTO(String foodName, double amount, String unit, Int
     public FoodItemAmountDTO(FoodItemAmount foodItemAmount) {
         this(foodItemAmount.getFoodItem().getName(), foodItemAmount.getAmount(),
                 foodItemAmount.getUnit(), foodItemAmount.getCalories());
+    }
+}
+----
+
+. Create `MealDTO`
++
+[source, java]
+----
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record MealDTO(long id, long userId, List<FoodItemAmountDTO> consumedFoods,
+                      long timestamp, String review) {
+
+    public MealDto(Meal meal) {
+        this(meal.getId(), meal.getUser().getId(),
+                meal.getConsumedFoods().stream().map(FoodItemAmountDTO::new).toList(),
+                meal.getTimestamp().toInstant().toEpochMilli(), meal.getReview());
     }
 }
 ----

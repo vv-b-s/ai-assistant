@@ -566,8 +566,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_project_setup">3. Project Setup</a>
 <ul class="sectlevel2">
-<li><a href="#_the_docker_set_up">3.1. The Docker set-up</a></li>
-<li><a href="#_setting_up_the_springboot_application">3.2. Setting up the SpringBoot application</a></li>
+<li><a href="#_setting_up_the_springboot_application">3.1. Setting up the SpringBoot application</a></li>
+<li><a href="#_the_docker_set_up">3.2. The Docker set-up</a></li>
 </ul>
 </li>
 <li><a href="#_setting_up_the_database">4. Setting up the database</a>
@@ -1070,18 +1070,67 @@ come to life.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Setting up the project should be pretty straight forward.
-If you feel any struggle, you can always look at the <a href="../code-old">code</a> directory, but keep in mind that learning through error
+If you feel any struggle, you can always checkout to the <code>solution</code> branch where you will find the <code>code</code> directory in the file tree, but keep in mind that learning through error
 is the best approach to get the most out of this workshop, so don&#8217;t give into the frustration!</p>
 </div>
 <div class="sect2">
-<h3 id="_the_docker_set_up">3.1. The Docker set-up</h3>
+<h3 id="_setting_up_the_springboot_application">3.1. Setting up the SpringBoot application</h3>
+<div class="paragraph">
+<p>Provisioning a SpringBoot app, should be a fairly easy task. You can just simply click <a href="https://start.spring.io/#!type=gradle-project&amp;language=java&amp;platformVersion=3.5.5&amp;packaging=jar&amp;jvmVersion=17&amp;groupId=com.contoso&amp;artifactId=adviser&amp;name=adviser&amp;description=Nutrition%20adviser&amp;packageName=com.contoso.adviser&amp;dependencies=spring-ai-ollama,data-jpa,web,actuator,devtools,postgresql,lombok">this link</a> or visit <a href="https://start.spring.io" class="bare">https://start.spring.io</a>
+and configure your application from there.</p>
+</div>
+<div class="paragraph">
+<p>If you choose the latter, make sure to set up your application like this:</p>
+</div>
+<div class="imageblock text-center">
+<div class="content">
+<img src="img/spring-initializer.png" alt="spring initializer">
+</div>
+</div>
+<div class="paragraph">
+<p>Once your set-up is complete, download the archive extract it and open it in your IDE.
+Most popular IDEs will instantly recognize it&#8217;s a Gradle/Maven project and will set everything up for you.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>In case you don&#8217;t want to run your project through an IDE or have any issues with setting up gradle, you can always use the built-in <code>gradlew</code> script, coming with your packed project.</p>
+</div>
+<div class="paragraph">
+<p>To run the application from the terminal, you can execute</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">#assuming ./ is the root of your extracted project.
+./gradlew boot run</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>But hold your horses! We&#8217;re not done setting up the project yet.</p>
+</div>
+</blockquote>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_the_docker_set_up">3.2. The Docker set-up</h3>
 <div class="paragraph">
 <p>The first step of making our project is ensuring that all the supporting structure is up and running.
 For that you will need to have docker installed on your machine.
 We will create three files, that will orchestrate the rest.</p>
 </div>
 <div class="sect3">
-<h4 id="_docker_compose_yml">3.1.1. docker-compose.yml</h4>
+<h4 id="_docker_compose_yml">3.2.1. docker-compose.yml</h4>
 <div class="paragraph">
 <p>Inside your project directory, create a file, named <code>docker-compose.yml</code>.
 The contents of this file should be as follows:</p>
@@ -1183,7 +1232,7 @@ These steps are not covered by this workshop, so please refer to the respective 
 </div>
 </div>
 <div class="sect3">
-<h4 id="_the_dockerfile">3.1.2. The Dockerfile</h4>
+<h4 id="_the_dockerfile">3.2.2. The Dockerfile</h4>
 <div class="paragraph">
 <p>Once we have <code>docker-compose.yml</code>, we can proceed creating the docker file within the same folder.
 Create a file, named <code>Dockerfile.ollama</code>, with the following contents:</p>
@@ -1217,7 +1266,7 @@ where the file will be copied inside the container.</td>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_run_ollama_sh">3.1.3. <code>run-ollama.sh</code></h4>
+<h4 id="_run_ollama_sh">3.2.3. <code>run-ollama.sh</code></h4>
 <div class="paragraph">
 <p>One final file for this part - the <code>run-ollama.sh</code> file.
 Again create it in the same folder, and add the following contents:</p>
@@ -1327,25 +1376,8 @@ Ollama is running</code></pre>
 <p>If that is all set, we can move tho the next step.</p>
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_setting_up_the_springboot_application">3.2. Setting up the SpringBoot application</h3>
-<div class="paragraph">
-<p>Provisioning a SpringBoot app, should be a fairly easy task. You can just simply visit the <a href="https://start.spring.io/">Spring Initializer</a>
-and configure your application from there.
-As a starting point, make sure to set up your application like this:</p>
-</div>
-<div class="imageblock text-center">
-<div class="content">
-<img src="img/spring-initializer.png" alt="spring initializer">
-</div>
-</div>
-<div class="paragraph">
-<p>Once your set-up is complete, download the archive extract it and open it in your IDE.
-Most popular IDEs will instantly recognize it&#8217;s a Gradle/Maven project and will set everything up for you.</p>
-</div>
 <div class="sect3">
-<h4 id="_connecting_ollama_and_database_with_the_application">3.2.1. Connecting Ollama and Database with the application</h4>
+<h4 id="_connecting_ollama_and_database_with_the_application">3.2.4. Connecting Ollama and Database with the application</h4>
 <div class="paragraph">
 <p>Before firing up our application for the first time, we need to provide it with the configuration it depends on.
 To do so, we will need to modify the <code>application.properties</code> file, located under <code>src/main/resources</code>:</p>
@@ -1382,7 +1414,7 @@ future changes.</td>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_creating_our_first_endpoint">3.2.2. Creating our first endpoint</h4>
+<h4 id="_creating_our_first_endpoint">3.2.5. Creating our first endpoint</h4>
 <div class="paragraph">
 <p>To make sure that all of our components are configured correctly, we will create the base of our application.
 To start off, make sure to follow the same project structure.
@@ -1786,6 +1818,16 @@ I recommend you to delete all existing tables and let Hibernate generate new one
 </tr>
 </table>
 </div>
+<div class="paragraph">
+<p>In adition we also need to introduce implementation for the <code>Gender</code> enum:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span style="color:#088;font-weight:bold">public</span> <span style="color:#339;font-weight:bold">enum</span> Gender {
+    MALE, FEMALE
+}</code></pre>
+</div>
+</div>
 </li>
 <li>
 <p>Next step is to add our <code>Meal</code> entity. It will store the information of all the meals the user has eaten.</p>
@@ -2160,23 +2202,6 @@ Here they will enter their daily meals, and allow the application to analyze the
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create the <code>MealDTO</code></p>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="java"><span style="color:#007">@JsonInclude</span>(JsonInclude.Include.NON_NULL)
-<span style="color:#088;font-weight:bold">public</span> record MealDto(<span style="color:#339;font-weight:bold">long</span> id, <span style="color:#339;font-weight:bold">long</span> userId, <span style="color:#0a8;font-weight:bold">List</span>&lt;FoodItemAmountDTO&gt; consumedFoods,
-                      <span style="color:#339;font-weight:bold">long</span> timestamp, <span style="color:#0a8;font-weight:bold">String</span> review) {
-
-    <span style="color:#088;font-weight:bold">public</span> MealDto(Meal meal) {
-        <span style="color:#950">this</span>(meal.getId(), meal.getUser().getId(),
-                meal.getConsumedFoods().stream().map(FoodItemAmountDTO::<span style="color:#080;font-weight:bold">new</span>).toList(),
-                meal.getTimestamp().toInstant().toEpochMilli(), meal.getReview());
-    }
-}</code></pre>
-</div>
-</div>
-</li>
-<li>
 <p>Create <code>FoodItemAmountDTO</code></p>
 <div class="listingblock">
 <div class="content">
@@ -2186,6 +2211,23 @@ Here they will enter their daily meals, and allow the application to analyze the
     <span style="color:#088;font-weight:bold">public</span> FoodItemAmountDTO(FoodItemAmount foodItemAmount) {
         <span style="color:#950">this</span>(foodItemAmount.getFoodItem().getName(), foodItemAmount.getAmount(),
                 foodItemAmount.getUnit(), foodItemAmount.getCalories());
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Create <code>MealDTO</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span style="color:#007">@JsonInclude</span>(JsonInclude.Include.NON_NULL)
+<span style="color:#088;font-weight:bold">public</span> record MealDTO(<span style="color:#339;font-weight:bold">long</span> id, <span style="color:#339;font-weight:bold">long</span> userId, <span style="color:#0a8;font-weight:bold">List</span>&lt;FoodItemAmountDTO&gt; consumedFoods,
+                      <span style="color:#339;font-weight:bold">long</span> timestamp, <span style="color:#0a8;font-weight:bold">String</span> review) {
+
+    <span style="color:#088;font-weight:bold">public</span> MealDto(Meal meal) {
+        <span style="color:#950">this</span>(meal.getId(), meal.getUser().getId(),
+                meal.getConsumedFoods().stream().map(FoodItemAmountDTO::<span style="color:#080;font-weight:bold">new</span>).toList(),
+                meal.getTimestamp().toInstant().toEpochMilli(), meal.getReview());
     }
 }</code></pre>
 </div>
@@ -2460,7 +2502,9 @@ create meal reviews, that are going to allow the user make better eating choices
 In this section we are going to take the data we collected form the user and task our local AI to generate useful data
 that is going to be presented to the user when they demand it.
 Generally the user would be interested how did the meal impact their nutrition and what are the nutritional values of the foods they eat.
-Let&#8217;s see how we can incorporate our LLM integration to do this for us.</p>
+The series of data generators we are going to create here are also intended to make the interaction with the LLM seamless, meaning that throughout the usage of application, the end user will not be aware that an LLM runs under the hood. 😎
+<br>
+Now, without further ado, let&#8217;s see how we can incorporate our LLM integration to do this for us.</p>
 </div>
 <div class="paragraph">
 <p>The first part is to create proper service classes that are going to give our LLM different tasks, based on the purpose
@@ -2518,18 +2562,40 @@ adviser.</p>
 <p>The nutrient generator&#8217;s task is to create nutrient data for our foods.
 If you remember we did not do anything for the Nutrient entity in our previous chapters.
 This is the place where we are finally going to do something about it.
-Inside your <code>ai</code> package, create a class called <code>NutrientGenerator</code> and add the following implementation:</p>
+Inside your <code>ai</code> package, create a class called <code>NutrientGenerator</code> and add let&#8217;s start implementing!</p>
 </div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>First we can define the outlines of our class.
+We want to annotate it as a <code>@Service</code> and import our dependencies.
+We can also define our method that is going to communicate with the rest of our services:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span style="color:#007">@Service</span>
 <span style="color:#007">@RequiredArgsConstructor</span>
 <span style="color:#339;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">NutrientGenerator</span> {
 
-    record FoodItemNutrients(<span style="color:#0a8;font-weight:bold">String</span> name, <span style="color:#0a8;font-weight:bold">List</span>&lt;<span style="color:#0a8;font-weight:bold">String</span>&gt; nutrients) {
-    }
+    <span style="color:#088;font-weight:bold">private</span> <span style="color:#088;font-weight:bold">final</span> OllamaAiService ollamaAiService;
 
-    <span style="color:#088;font-weight:bold">private</span> <span style="color:#088;font-weight:bold">static</span> <span style="color:#088;font-weight:bold">final</span> <span style="color:#0a8;font-weight:bold">String</span> PROMPT = <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#710">&quot;</span></span><span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20"> <i class="conum" data-value="1"></i><b>(1)</b>
+    <span style="color:#088;font-weight:bold">public</span> <span style="color:#0a8;font-weight:bold">Map</span>&lt;FoodItem, <span style="color:#0a8;font-weight:bold">List</span>&lt;<span style="color:#0a8;font-weight:bold">String</span>&gt;&gt; obtainNutrientData(<span style="color:#0a8;font-weight:bold">Collection</span>&lt;FoodItem&gt; foodItems) {
+        ...
+    }
+}</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>The next step is to define our prompt.
+This is where we are going to shape the data that is unique to the food items we are going to pass to the LLM.
+We are also going to tell the LLM what format it should give us response in, so we can parse it properly afterward.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span style="color:#339;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">NutrientGenerator</span> {
+
+    <span style="color:#777">// definitions...</span>
+
+    <span style="color:#088;font-weight:bold">private</span> <span style="color:#088;font-weight:bold">static</span> <span style="color:#088;font-weight:bold">final</span> <span style="color:#0a8;font-weight:bold">String</span> PROMPT = <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#710">&quot;</span></span><span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">
             You're a helpful assistant. You are going to be given a list of foods.
             In return you have to respond with a json formatted list of the nutrients associated with that food.
             For example:
@@ -2577,8 +2643,34 @@ Inside your <code>ai</code> package, create a class called <code>NutrientGenerat
             Please answer only in the format shown in </span><span style="color:#710">&quot;</span></span>----<span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#D20">. Do not add anything else to your answer.
             </span><span style="color:#710">&quot;</span></span><span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#710">&quot;</span><span style="color:#710">&quot;</span></span>;
 
-    <span style="color:#088;font-weight:bold">private</span> <span style="color:#088;font-weight:bold">final</span> OllamaAiService ollamaAiService;
+    <span style="color:#777">// implementations...</span>
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The prompt should be consistent and exact.
+You need to specify exactly what you want the LLM to do, otherwise the results might not be predictable.
+</td>
+</tr>
+</table>
+</div>
+</li>
+<li>
+<p>Finally, we are going to implement the <code>obtainNutrientData</code> method, where the real work happens:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span style="color:#007">@Service</span>
+<span style="color:#007">@RequiredArgsConstructor</span>
+<span style="color:#339;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">NutrientGenerator</span> {
 
+    <span style="color:#088;font-weight:bold">private</span> <span style="color:#088;font-weight:bold">static</span> <span style="color:#088;font-weight:bold">final</span> <span style="color:#0a8;font-weight:bold">String</span> PROMPT = ...;
+    <span style="color:#088;font-weight:bold">private</span> <span style="color:#088;font-weight:bold">final</span> OllamaAiService ollamaAiService;
 
     <span style="color:#088;font-weight:bold">public</span> <span style="color:#0a8;font-weight:bold">Map</span>&lt;FoodItem, <span style="color:#0a8;font-weight:bold">List</span>&lt;<span style="color:#0a8;font-weight:bold">String</span>&gt;&gt; obtainNutrientData(<span style="color:#0a8;font-weight:bold">Collection</span>&lt;FoodItem&gt; foodItems) {
         <span style="color:#0a8;font-weight:bold">Map</span>&lt;<span style="color:#0a8;font-weight:bold">String</span>, FoodItem&gt; reverseMap = foodItems.stream().collect(Collectors.toMap(FoodItem::getName, fi -&gt; fi));
@@ -2588,7 +2680,7 @@ Inside your <code>ai</code> package, create a class called <code>NutrientGenerat
 
         <span style="color:#0a8;font-weight:bold">Map</span>&lt;FoodItem, <span style="color:#0a8;font-weight:bold">List</span>&lt;<span style="color:#0a8;font-weight:bold">String</span>&gt;&gt; result = <span style="color:#080;font-weight:bold">new</span> <span style="color:#0a8;font-weight:bold">HashMap</span>&lt;&gt;();
         <span style="color:#080;font-weight:bold">try</span> {
-            FoodItemNutrients<span style="color:#339;font-weight:bold">[]</span> foodNutrientResult = JsonUtils.toObject(aiOutput, FoodItemNutrients<span style="color:#339;font-weight:bold">[]</span>.class);
+            FoodItemNutrients<span style="color:#339;font-weight:bold">[]</span> foodNutrientResult = JsonUtils.toObject(aiOutput, FoodItemNutrients<span style="color:#339;font-weight:bold">[]</span>.class); <i class="conum" data-value="1"></i><b>(1)</b>
             <span style="color:#080;font-weight:bold">for</span> (<span style="color:#339;font-weight:bold">var</span> item : foodNutrientResult) {
                 FoodItem foodItem = reverseMap.get(item.name);
                 result.putIfAbsent(foodItem, item.nutrients);
@@ -2599,6 +2691,8 @@ Inside your <code>ai</code> package, create a class called <code>NutrientGenerat
             <span style="color:#777">//handle the exception</span>
         }
     }
+
+    record FoodItemNutrients(<span style="color:#0a8;font-weight:bold">String</span> name, <span style="color:#0a8;font-weight:bold">List</span>&lt;<span style="color:#0a8;font-weight:bold">String</span>&gt; nutrients) { } <i class="conum" data-value="2"></i><b>(2)</b>
 }</code></pre>
 </div>
 </div>
@@ -2606,10 +2700,17 @@ Inside your <code>ai</code> package, create a class called <code>NutrientGenerat
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>The prompt should be consistent and exact.
-You need to specify exactly what you want the LLM to do, otherwise the results might not be predictable.</td>
+<td>The <code>JsonUtils</code> class is a helper class definded by us to help us to seamlessly serialize and deserialize JSON strings into Java objects.
+Read further to find out more.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>FoodItemNutrients</code> is not mandatory, but it will help us turn the LLM output into usable Java objects.</td>
 </tr>
 </table>
+</div>
+</li>
+</ol>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2621,6 +2722,43 @@ You need to specify exactly what you want the LLM to do, otherwise the results m
 Throughout the implementation of the generators, we are not going to produce or modify any of the entities.
 This is a task that should be performed elsewhere, as we might need to validate the data or do something else with it,
 before we persist it.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="title">Defining the <code>JsonUtils</code> class</div>
+<div class="paragraph">
+<p>As previously mentioned, the <code>JsonUtils</code> class is used to wrap the invocations of the jackson converters.
+You can define your <code>JusonUtils</code> class in the <code>utils</code> package like this.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span style="color:#088;font-weight:bold">public</span> <span style="color:#088;font-weight:bold">final</span> <span style="color:#339;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">JsonUtils</span> {
+
+    <span style="color:#088;font-weight:bold">private</span> <span style="color:#088;font-weight:bold">static</span> <span style="color:#088;font-weight:bold">final</span> ObjectMapper OBJECT_MAPPER = <span style="color:#080;font-weight:bold">new</span> ObjectMapper();
+
+    <span style="color:#088;font-weight:bold">private</span> JsonUtils() {
+
+    }
+
+    <span style="color:#088;font-weight:bold">public</span> <span style="color:#088;font-weight:bold">static</span> &lt;T&gt; T toObject(<span style="color:#0a8;font-weight:bold">String</span> json, <span style="color:#0a8;font-weight:bold">Class</span>&lt;T&gt; clazz) <span style="color:#088;font-weight:bold">throws</span> JsonProcessingException {
+        <span style="color:#080;font-weight:bold">return</span> OBJECT_MAPPER.readValue(json, clazz);
+    }
+
+    <span style="color:#088;font-weight:bold">public</span> <span style="color:#088;font-weight:bold">static</span> &lt;T&gt; <span style="color:#0a8;font-weight:bold">String</span> toJson(T object) <span style="color:#088;font-weight:bold">throws</span> JsonProcessingException {
+        <span style="color:#080;font-weight:bold">return</span> OBJECT_MAPPER.writeValueAsString(object);
+    }
+
+}</code></pre>
+</div>
+</div>
 </td>
 </tr>
 </table>
@@ -2683,7 +2821,9 @@ You can implement it like this:
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span style="color:#088;font-weight:bold">public</span> <span style="color:#339;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">NutritionAdviserService</span> {
 
-    <span style="color:#777">//Injections</span>
+    <span style="color:#088;font-weight:bold">private</span> <span style="color:#088;font-weight:bold">final</span> NutrientGenerator nutrientGenerator;
+    <span style="color:#088;font-weight:bold">private</span> <span style="color:#088;font-weight:bold">final</span> FoodItemRepository foodItemRepository;
+    <span style="color:#088;font-weight:bold">private</span> <span style="color:#088;font-weight:bold">final</span> NutrientRepository nutrientRepository;
 
     <span style="color:#007">@EventListener</span>
     <span style="color:#088;font-weight:bold">public</span> <span style="color:#339;font-weight:bold">void</span> obtainMealDataFromLLM(MealCreatedEvent event) {
@@ -2926,6 +3066,7 @@ We will avoid doing anything to the data at this point and move onto the <code>N
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span style="color:#088;font-weight:bold">public</span> <span style="color:#339;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">NutritionAdviserService</span> {
 
+    <span style="color:#777">//Don't forget to import CaloricInformationGenerator and FoodItemAmountRepository</span>
     ...
     <span style="color:#007">@EventListener</span>
     <span style="color:#088;font-weight:bold">public</span> <span style="color:#339;font-weight:bold">void</span> obtainMealDataFromLLM(MealCreatedEvent event) {
@@ -3088,7 +3229,7 @@ As we want more freely given information and ask the LLM for broader opinion, th
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="java"><span style="color:#088;font-weight:bold">public</span> <span style="color:#339;font-weight:bold">class</span> <span style="color:#B06;font-weight:bold">NutritionAdviserService</span> {
 
-    <span style="color:#777">//definitions</span>
+    <span style="color:#777">//You know the drill already. Make sure your imports are consistent.</span>
 
     <span style="color:#007">@EventListener</span>
     <span style="color:#088;font-weight:bold">public</span> <span style="color:#339;font-weight:bold">void</span> obtainMealDataFromLLM(MealCreatedEvent event) {
@@ -3393,7 +3534,7 @@ Let’s aim for a future where AI and LLMs aren&#8217;t seen as threats to our j
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-04-27 13:51:21 +0300
+Last updated 2025-09-17 18:11:55 +0300
 </div>
 </div>
 <script>
