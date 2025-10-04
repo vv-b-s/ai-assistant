@@ -1,2 +1,5 @@
 .idea/
 *.pdf
+build
+.gradle
+docker/

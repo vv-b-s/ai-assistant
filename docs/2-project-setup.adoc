@@ -163,13 +163,45 @@ done
 You can go with the one given here, or choose your own favorite flavour of LLM, just keep in mind that each LLM responds differently,
 and you might get different results or processing times if you go with a different LLM.
 
-Now that we have all the files created let's open a terminal into the containing folder and run `docker-compose up`.
+Now that we have all the files created let's open a terminal into the containing folder and run `docker-compose up` (or `docker compose up` depending on your version).
 
 [WARNING]
 ====
-Thi installation will take same time, so do be patient!
+* Thi installation will take same time, so do be patient!
 It will first download all the required docker images, and then will attempt to pull your LLM model.
 The whole set-up will take around 4GB of your hard drive.
+
+* During the build of the `ollama` image it is possible to get the following error:
++
+[source, text]
+----
+ollama Warning pull access denied for ollama, repository does not exist or may require 'docker login': denied: requested access to the resource is denied
+----
++
+This message is misleading.
+The reason this is happening is due to docker compose caching.
+Here's how to troubleshoot this error:
++
+. Make sure that the `Dockerfile.ollama` is properly specified in the `docker-compose.yml`
++
+[source, yml]
+----
+    ...
+ ollama:
+    build:
+      context: .  #should be the root of your Dockerfile
+      dockerfile: ./Dockerfile.ollama #should be the path of your Dockerfile
+    image: ollama
+    ...
+----
++
+. Inside the docker-compose.yml folder, run the following command to tell docker to avid using cached data:
++
+[source, bash]
+----
+docker compose build --no-cache ollama
+----
+
 ====
 
 Once everything is completed you should see the following text in your terminal
