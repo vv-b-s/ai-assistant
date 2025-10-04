@@ -1070,7 +1070,7 @@ come to life.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Setting up the project should be pretty straight forward.
-If you feel any struggle, you can always checkout to the <code>solution</code> branch where you will find the <code>code</code> directory in the file tree, but keep in mind that learning through error
+If you feel any struggle, you can always checkout to the <a href="https://github.com/vv-b-s/ai-assistant/tree/solution">solution</a> branch where you will find the <code>code</code> directory in the file tree, but keep in mind that learning through error
 is the best approach to get the most out of this workshop, so don&#8217;t give into the frustration!</p>
 </div>
 <div class="sect2">
@@ -1297,7 +1297,7 @@ and you might get different results or processing times if you go with a differe
 </table>
 </div>
 <div class="paragraph">
-<p>Now that we have all the files created let&#8217;s open a terminal into the containing folder and run <code>docker-compose up</code>.</p>
+<p>Now that we have all the files created let&#8217;s open a terminal into the containing folder and run <code>docker-compose up</code> (or <code>docker compose up</code> depending on your version).</p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -1306,10 +1306,53 @@ and you might get different results or processing times if you go with a differe
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-<div class="paragraph">
+<div class="ulist">
+<ul>
+<li>
 <p>Thi installation will take same time, so do be patient!
 It will first download all the required docker images, and then will attempt to pull your LLM model.
 The whole set-up will take around 4GB of your hard drive.</p>
+</li>
+<li>
+<p>During the build of the <code>ollama</code> image it is possible to get the following error:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="text">ollama Warning pull access denied for ollama, repository does not exist or may require 'docker login': denied: requested access to the resource is denied</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This message is misleading.
+The reason this is happening is due to docker compose caching.
+Here&#8217;s how to troubleshoot this error:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Make sure that the <code>Dockerfile.ollama</code> is properly specified in the <code>docker-compose.yml</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="yml">    <span style="color:#F00;background-color:#FAA">...</span>
+ <span style="color:#606">ollama</span>:
+    <span style="color:#606">build</span>:
+      <span style="color:#606">context</span>: <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#D20">.</span></span>  <span style="color:#777">#should be the root of your Dockerfile</span>
+      <span style="color:#606">dockerfile</span>: <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#D20">./Dockerfile.ollama</span></span> <span style="color:#777">#should be the path of your Dockerfile</span>
+    <span style="color:#606">image</span>: <span style="background-color:hsla(0,100%,50%,0.05)"><span style="color:#D20">ollama</span></span>
+    <span style="color:#F00;background-color:#FAA">...</span></code></pre>
+</div>
+</div>
+</li>
+<li>
+<p>Inside the docker-compose.yml folder, run the following command to tell docker to avid using cached data:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="bash">docker compose build --no-cache ollama</code></pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</li>
+</ul>
 </div>
 </td>
 </tr>
