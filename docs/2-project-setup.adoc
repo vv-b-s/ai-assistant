@@ -6,7 +6,7 @@
 == Project Setup
 
 Setting up the project should be pretty straight forward.
-If you feel any struggle, you can always checkout to the `solution` branch where you will find the `code` directory in the file tree, but keep in mind that learning through error
+If you feel any struggle, you can always checkout to the https://github.com/vv-b-s/ai-assistant/tree/solution[solution] branch where you will find the `code` directory in the file tree, but keep in mind that learning through error
 is the best approach to get the most out of this workshop, so don't give into the frustration!
 
 === Setting up the SpringBoot application
